@@ -57,7 +57,7 @@ npx create-expo-app@latest mobile --template
 cd mobile
 ```
 
-## 2) Установка зависимостей mobile (одной командой)
+## 2) Установка зависимостей mobile
 
 ```bash
 npm install three @react-three/fiber @react-three/drei @react-navigation/native @react-navigation/native-stack react-native-screens react-native-safe-area-context react-native-gesture-handler react-native-reanimated expo-sensors expo-gl expo-asset expo-file-system
@@ -88,9 +88,9 @@ npm install -D typescript ts-node-dev eslint eslint-config-prettier @typescript-
 
 ## 6) Настройка PostgreSQL
 
-1. Создай базу данных `campus_panorama`.
-2. Выполни SQL из `backend/src/config/schema.sql`.
-3. Заполни `backend/.env` корректными значениями.
+1. Создать базу данных `campus_panorama`.
+2. Выполнить SQL из `backend/src/config/schema.sql`.
+3. Заполнить `backend/.env` корректными значениями.
 
 ## 7) Запуск backend (development)
 
@@ -101,7 +101,7 @@ npm run dev
 
 Сервер поднимется на `http://localhost:5000`.
 
-## 8) Полезные API endpoints
+## 8) API endpoints
 
 - `GET /api/health` - проверка здоровья сервера
 - `POST /api/auth/register` - регистрация
@@ -111,7 +111,7 @@ npm run dev
 - `GET /api/locations/:locationId` - локация по ID
 - `POST /api/locations` - создать локацию (только admin, multipart/form-data, поле файла: `panorama`)
 
-## 9) Важно для Expo + Reanimated
+## 9) Expo + Reanimated
 
 В `mobile/babel.config.js` должен быть подключен плагин:
 
