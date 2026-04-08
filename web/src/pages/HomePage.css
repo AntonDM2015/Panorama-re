@@ -1,0 +1,264 @@
+.home-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #0B1F4D;
+}
+
+.home-header {
+  background: linear-gradient(135deg, #0B1F4D 0%, #1a3a7a 100%);
+  border-bottom: 2px solid rgba(56, 189, 248, 0.3);
+  padding: 20px 0;
+}
+
+.home-header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.home-logo {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.home-logo-icon {
+  font-size: 48px;
+}
+
+.home-logo-text {
+  flex: 1;
+}
+
+.home-logo-title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #F8FAFC;
+}
+
+.home-logo-subtitle {
+  margin: 4px 0 0 0;
+  font-size: 14px;
+  color: #94A3B8;
+  font-weight: 500;
+}
+
+.home-main {
+  flex: 1;
+  padding: 40px 20px;
+}
+
+.home-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.home-section-title {
+  margin: 0 0 32px 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: #F8FAFC;
+}
+
+.home-cities-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+.home-city-card {
+  background: rgba(30, 58, 138, 0.6);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.home-city-card:hover {
+  background: rgba(30, 58, 138, 0.8);
+  border-color: rgba(56, 189, 248, 0.6);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.home-city-card-icon {
+  font-size: 48px;
+}
+
+.home-city-card-content {
+  flex: 1;
+}
+
+.home-city-card-name {
+  margin: 0 0 4px 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #F8FAFC;
+}
+
+.home-city-card-country {
+  margin: 0;
+  font-size: 14px;
+  color: #94A3B8;
+  font-weight: 500;
+}
+
+.home-city-card-arrow {
+  font-size: 24px;
+  color: #38BDF8;
+  font-weight: 700;
+}
+
+.home-empty {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.home-empty-text {
+  color: #94A3B8;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.home-footer {
+  background: #071533;
+  border-top: 1px solid rgba(56, 189, 248, 0.2);
+  padding: 20px;
+  text-align: center;
+}
+
+.home-footer p {
+  margin: 0;
+  color: #64748B;
+  font-size: 14px;
+}
+
+.home-admin-link {
+  display: inline-block;
+  margin-top: 8px;
+  color: #38BDF8;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.home-admin-link:hover {
+  color: #7DD3FC;
+  text-decoration: underline;
+}
+
+.home-loading,
+.home-error {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #0B1F4D;
+  gap: 16px;
+  padding: 20px;
+}
+
+.home-spinner {
+  width: 60px;
+  height: 60px;
+  border: 4px solid rgba(56, 189, 248, 0.2);
+  border-top-color: #38BDF8;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.home-loading-text {
+  color: #CBD5E1;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.home-error-title {
+  color: #FCA5A5;
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.home-error-text {
+  color: #CBD5E1;
+  font-size: 16px;
+  margin: 0;
+  text-align: center;
+}
+
+.home-retry-button {
+  background: #38BDF8;
+  color: #0B1F4D;
+  border: none;
+  padding: 12px 32px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-top: 16px;
+}
+
+.home-retry-button:hover {
+  background: #7DD3FC;
+}
+
+@media (max-width: 768px) {
+  .home-header {
+    padding: 16px 0;
+  }
+
+  .home-logo-title {
+    font-size: 20px;
+  }
+
+  .home-logo-subtitle {
+    font-size: 12px;
+  }
+
+  .home-logo-icon {
+    font-size: 36px;
+  }
+
+  .home-main {
+    padding: 24px 16px;
+  }
+
+  .home-section-title {
+    font-size: 22px;
+    margin-bottom: 24px;
+  }
+
+  .home-cities-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .home-city-card {
+    padding: 20px;
+  }
+
+  .home-city-card-icon {
+    font-size: 40px;
+  }
+
+  .home-city-card-name {
+    font-size: 18px;
+  }
+}

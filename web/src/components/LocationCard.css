@@ -1,0 +1,82 @@
+.location-card {
+  display: block;
+  background: linear-gradient(135deg, #0B1F4D 0%, #1E3A5F 100%);
+  border: 2px solid rgba(56, 189, 248, 0.2);
+  border-radius: 16px;
+  padding: 24px;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.location-card:hover {
+  border-color: rgba(56, 189, 248, 0.6);
+  box-shadow: 0 8px 24px rgba(56, 189, 248, 0.2);
+  transform: translateY(-4px);
+}
+
+.location-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.location-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.location-card-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: #F8FAFC;
+  flex: 1;
+}
+
+.location-card-badge {
+  background: rgba(56, 189, 248, 0.2);
+  color: #38BDF8;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.location-card-description {
+  margin: 0;
+  font-size: 15px;
+  color: #CBD5E1;
+  line-height: 1.5;
+}
+
+.location-card-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 8px;
+}
+
+.location-card-link {
+  color: #38BDF8;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .location-card {
+    padding: 20px;
+  }
+  
+  .location-card-title {
+    font-size: 20px;
+  }
+  
+  .location-card-header {
+    flex-direction: column;
+    gap: 8px;
+  }
+}

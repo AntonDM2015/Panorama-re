@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const location_controller_1 = require("../controllers/location.controller");
+const auth_middleware_1 = require("../middleware/auth.middleware");
+const locationRouter = (0, express_1.Router)();
+locationRouter.get("/", location_controller_1.listLocationsController);
+locationRouter.get("/:id", location_controller_1.getLocationByIdController);
+locationRouter.post("/", auth_middleware_1.requireAuth, auth_middleware_1.requireAdmin, location_controller_1.createLocationController);
+locationRouter.put("/:id", auth_middleware_1.requireAuth, auth_middleware_1.requireAdmin, location_controller_1.updateLocationController);
+locationRouter.delete("/:id", auth_middleware_1.requireAuth, auth_middleware_1.requireAdmin, location_controller_1.deleteLocationController);
+exports.default = locationRouter;

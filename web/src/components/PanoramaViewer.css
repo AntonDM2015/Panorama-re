@@ -1,0 +1,200 @@
+.panorama-viewer-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 500px;
+  background: #000;
+  overflow: hidden;
+}
+
+.panorama-viewer {
+  width: 100%;
+  height: 100%;
+  min-height: 500px;
+}
+
+.panorama-viewer .pnlm-container {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Ensure Pannellum canvas fills the container */
+.panorama-viewer .pnlm-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* ===================================
+   PANORAMA HOTSPOTS STYLING
+   =================================== */
+
+/* Style Pannellum hotspots */
+.panorama-viewer .pnlm-hotspot {
+  cursor: pointer;
+  transition: transform 0.2s ease-out;
+  z-index: 100 !important;
+}
+
+.panorama-viewer .pnlm-hotspot:hover {
+  transform: scale(1.3);
+}
+
+/* Info hotspot (navigation arrows) */
+.panorama-viewer .pnlm-hotspot.pnlm-info {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.95) 0%, rgba(16, 185, 129, 0.95) 100%) !important;
+  border: 3px solid rgba(255, 255, 255, 0.9) !important;
+  border-radius: 50% !important;
+  width: 60px !important;
+  height: 60px !important;
+  box-shadow: 0 6px 20px rgba(56, 189, 248, 0.6), 0 0 30px rgba(56, 189, 248, 0.3) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  position: relative !important;
+  cursor: pointer !important;
+}
+
+/* Force visibility */
+.panorama-viewer .pnlm-hotspot.pnlm-info,
+.panorama-viewer .pnlm-hotspot.pnlm-info * {
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.panorama-viewer .pnlm-hotspot.pnlm-info::before {
+  content: '▲';
+  color: #FFFFFF;
+  font-size: 24px;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Rotate arrow based on direction attribute */
+.panorama-viewer .pnlm-hotspot.pnlm-info[data-direction="south"]::before,
+.panorama-viewer .pnlm-hotspot.pnlm-info[data-direction="180"]::before {
+  content: '▼';
+}
+
+.panorama-viewer .pnlm-hotspot.pnlm-info[data-direction="east"]::before,
+.panorama-viewer .pnlm-hotspot.pnlm-info[data-direction="90"]::before {
+  content: '►';
+}
+
+.panorama-viewer .pnlm-hotspot.pnlm-info[data-direction="west"]::before,
+.panorama-viewer .pnlm-hotspot.pnlm-info[data-direction="-90"]::before {
+  content: '◄';
+}
+
+.panorama-viewer .pnlm-hotspot.pnlm-info:hover {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 1) 0%, rgba(16, 185, 129, 1) 100%);
+  box-shadow: 0 8px 24px rgba(56, 189, 248, 0.8), 0 0 40px rgba(56, 189, 248, 0.4);
+  transform: scale(1.3);
+}
+
+/* Pulse animation for hotspots */
+@keyframes hotspot-pulse {
+  0%, 100% { 
+    box-shadow: 0 6px 20px rgba(56, 189, 248, 0.6), 0 0 30px rgba(56, 189, 248, 0.3);
+  }
+  50% { 
+    box-shadow: 0 6px 30px rgba(56, 189, 248, 0.9), 0 0 50px rgba(56, 189, 248, 0.5);
+  }
+}
+
+.panorama-viewer .pnlm-hotspot.pnlm-info {
+  animation: hotspot-pulse 2s ease-in-out infinite;
+}
+
+/* Hotspot tooltip */
+.panorama-viewer .pnlm-hotspot.pnlm-info span {
+  background: rgba(15, 36, 88, 0.95);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: #F8FAFC;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Pulse animation for hotspots */
+@keyframes hotspot-pulse {
+  0%, 100% {
+    box-shadow: 0 4px 12px rgba(56, 189, 248, 0.5);
+  }
+  50% {
+    box-shadow: 0 4px 20px rgba(56, 189, 248, 0.8);
+  }
+}
+
+.panorama-viewer .pnlm-hotspot.pnlm-info {
+  animation: hotspot-pulse 2s ease-in-out infinite;
+}
+
+.panorama-loader {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 10;
+}
+
+.panorama-loader-spinner {
+  width: 60px;
+  height: 60px;
+  border: 4px solid rgba(56, 189, 248, 0.2);
+  border-top-color: #38BDF8;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.panorama-loader-text {
+  margin-top: 16px;
+  color: #F8FAFC;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.panorama-error {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.9);
+  padding: 20px;
+  z-index: 10;
+}
+
+.panorama-error-title {
+  color: #FCA5A5;
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+}
+
+.panorama-error-text {
+  color: #CBD5E1;
+  font-size: 15px;
+  text-align: center;
+  margin: 0;
+}
