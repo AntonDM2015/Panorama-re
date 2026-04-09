@@ -8,7 +8,7 @@ interface LocationCardProps {
 }
 
 const LocationCard: React.FC<LocationCardProps> = ({ location }) => {
-  const panoramaCount = location.panoramas.length;
+  const panoramaCount = location.panoramas?.length || 0;
   
   return (
     <Link to={`/panorama/${location.id}`} className="location-card">

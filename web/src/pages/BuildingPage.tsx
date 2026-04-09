@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getBuildingById, getLocationsByBuilding, getPanoramasByLocation, getNavigationLinks } from '../services/api';
-import { Building, Location, PanoramaImage } from '../types';
+import { Building, Location } from '../types';
 import PanoramaViewer from '../components/PanoramaViewer';
 import StreetViewMode from '../components/StreetViewMode';
 import './BuildingPage.css';
