@@ -2,10 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getCities, getBuildings, getLocations, createCity, createBuilding, createLocation, deleteCity, deleteBuilding, deleteLocation, getAuthToken, updateCity, updateBuilding, updateLocation, getPanoramasByLocation, createPanorama, deletePanorama, getNavigationLinks, createNavigationLink, deleteNavigationLink } from '../services/api';
 import { City, Building, Location, PanoramaImage, NavigationLink } from '../types';
+import { useTheme } from '../contexts/ThemeContext';
 import './AdminPage.css';
 
 const AdminPage: React.FC = () => {
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -402,8 +404,15 @@ const AdminPage: React.FC = () => {
   return (
     <div className="admin-page">
       <header className="admin-header">
-        <button className="admin-back" onClick={() => navigate('/')}>← На сайт</button>
-        <h1 className="admin-title">Панель администратора</h1>
+        <div className="admin-header-content">
+          <div className="admin-header-left">
+            <button className="admin-back" onClick={() => navigate('/')}>← На сайт</button>
+            <h1 className="admin-title">Панель администратора</h1>
+          </div>
+          <button className="theme-toggle" onClick={toggleTheme} aria-label="Переключить тему">
+            {theme === 'light' ? '🌙' : '☀️'}
+          </button>
+        </div>
       </header>
 
       <div className="admin-tabs">

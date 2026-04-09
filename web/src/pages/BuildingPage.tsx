@@ -4,11 +4,13 @@ import { getBuildingById, getLocationsByBuilding, getPanoramasByLocation, getNav
 import { Building, Location } from '../types';
 import PanoramaViewer from '../components/PanoramaViewer';
 import StreetViewMode from '../components/StreetViewMode';
+import { useTheme } from '../contexts/ThemeContext';
 import './BuildingPage.css';
 
 const BuildingPage: React.FC = () => {
   const { buildingId } = useParams<{ buildingId: string }>();
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
   const [building, setBuilding] = useState<Building | null>(null);
   const [locations, setLocations] = useState<Location[]>([]);
   const [activeTab, setActiveTab] = useState<'locations' | 'rooms'>('locations');
@@ -20,19 +22,20 @@ const BuildingPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!buildingId) {
-      return;
-    }
+    if (!buildingId) return;
 
     const fetchData = async () => {
       try {
         setLoading(true);
+        console.log('[BuildingPage] Fetching building:', buildingId);
         const buildingData = await getBuildingById(buildingId);
+        console.log('[BuildingPage] Building loaded:', buildingData.name);
         setBuilding(buildingData);
 
+        console.log('[BuildingPage] Fetching locations for building:', buildingId);
         const locationsData = await getLocationsByBuilding(buildingId);
+        console.log('[BuildingPage] Locations loaded:', locationsData.length);
         
-        // Load panoramas and navigation links for each location
         const locationsWithPanoramas = await Promise.all(
           locationsData.map(async (loc) => {
             try {
@@ -48,10 +51,12 @@ const BuildingPage: React.FC = () => {
           })
         );
         
+        console.log('[BuildingPage] All locations with panoramas:', locationsWithPanoramas.length);
         setLocations(locationsWithPanoramas);
         setError(null);
       } catch (err: any) {
         console.error('[BuildingPage] Error fetching data:', err);
+        console.error('[BuildingPage] Error response:', err.response?.data);
         setError(err.response?.data?.message || 'Не удалось загрузить данные');
       } finally {
         setLoading(false);
@@ -63,12 +68,10 @@ const BuildingPage: React.FC = () => {
 
   const handleLocationClick = useCallback((locationId: string) => {
     setExpandedLocation(prev => prev === locationId ? null : locationId);
-    setCurrentPanoramaIndex(0); // Reset panorama index when switching locations
+    setCurrentPanoramaIndex(0);
   }, []);
 
-  const handlePanoramaLoad = useCallback(() => {
-    // Panorama loaded successfully
-  }, []);
+  const handlePanoramaLoad = useCallback(() => {}, []);
 
   const handlePanoramaError = useCallback((err: string) => {
     console.error('[BuildingPage] Panorama error:', err);
@@ -99,7 +102,7 @@ const BuildingPage: React.FC = () => {
   if (loading) {
     return (
       <div className="building-page-loading">
-        <div className="building-page-spinner"></div>
+        <div className="spinner"></div>
         <p className="building-page-loading-text">Загрузка...</p>
       </div>
     );
@@ -110,7 +113,7 @@ const BuildingPage: React.FC = () => {
       <div className="building-page-error">
         <p className="building-page-error-title">Ошибка</p>
         <p className="building-page-error-text">{error || 'Корпус не найден'}</p>
-        <button onClick={() => navigate('/')} className="building-page-back-button">
+        <button onClick={() => navigate('/')} className="btn btn-primary">
           На главную
         </button>
       </div>
@@ -120,38 +123,40 @@ const BuildingPage: React.FC = () => {
   return (
     <div className="building-page">
       <header className="building-page-header">
-        <div className="building-page-header-top">
-          <button className="building-page-back" onClick={() => navigate(-1)}>
-            ← Назад
-          </button>
-          <button
-            className="building-page-street-view-btn"
-            onClick={() => setShowStreetView(true)}
-            disabled={locations.length === 0}
-          >
-            🧭 Свободное перемещение
-          </button>
-        </div>
-        <div className="building-page-info">
-          <h1 className="building-page-title">{building.name}</h1>
-          {building.address && <p className="building-page-address">{building.address}</p>}
-          {building.description && <p className="building-page-description">{building.description}</p>}
+        <div className="building-page-header-content">
+          <div className="building-page-header-top">
+            <button className="building-page-back" onClick={() => navigate(-1)}>
+              <span className="building-page-back-icon">←</span>
+              <span>Назад</span>
+            </button>
+            <button className="theme-toggle" onClick={toggleTheme} aria-label="Переключить тему">
+              {theme === 'light' ? '🌙' : '☀️'}
+            </button>
+          </div>
+          <div className="building-page-info">
+            <h1 className="building-page-title animate-fade-in-up">{building.name}</h1>
+            {building.address && <p className="building-page-address animate-fade-in-up" style={{ animationDelay: '80ms' }}>{building.address}</p>}
+            {building.description && <p className="building-page-description animate-fade-in-up" style={{ animationDelay: '160ms' }}>{building.description}</p>}
+          </div>
         </div>
       </header>
 
-      <div className="building-page-tabs">
-        <button
-          className={`building-page-tab ${activeTab === 'locations' ? 'building-page-tab-active' : ''}`}
-          onClick={() => setActiveTab('locations')}
-        >
-          Локации
-        </button>
-        <button
-          className={`building-page-tab ${activeTab === 'rooms' ? 'building-page-tab-active' : ''}`}
-          onClick={() => setActiveTab('rooms')}
-        >
-          Кабинеты
-        </button>
+      <div className="building-page-tabs-container">
+        <div className="building-page-tabs">
+          <button
+            className={`building-page-tab ${activeTab === 'locations' ? 'building-page-tab-active' : ''}`}
+            onClick={() => setActiveTab('locations')}
+          >
+            Локации
+          </button>
+          <button
+            className={`building-page-tab ${activeTab === 'rooms' ? 'building-page-tab-active' : ''}`}
+            onClick={() => setActiveTab('rooms')}
+          >
+            Кабинеты
+          </button>
+          <div className="building-page-tab-indicator" />
+        </div>
       </div>
 
       {activeTab === 'rooms' && (
@@ -161,7 +166,7 @@ const BuildingPage: React.FC = () => {
             placeholder="Поиск кабинета..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="building-page-search-input"
+            className="building-page-search-input input"
           />
         </div>
       )}
@@ -169,21 +174,20 @@ const BuildingPage: React.FC = () => {
       <main className="building-page-main">
         <div className="building-page-container">
           {Object.keys(floorGroups).length === 0 ? (
-            <div className="building-page-empty">
+            <div className="building-page-empty animate-fade-in-up">
               <p className="building-page-empty-text">
                 {activeTab === 'locations' ? 'Локации' : 'Кабинеты'} пока не добавлены
               </p>
             </div>
           ) : (
-            sortedFloorGroups.map(({ floor, locations: floorLocations }) => (
-              <div key={floor} className="building-page-floor-group">
+            sortedFloorGroups.map(({ floor, locations: floorLocations }, index) => (
+              <div key={floor} className="building-page-floor-group animate-fade-in-up" style={{ animationDelay: `${index * 80}ms` }}>
                 <h3 className="building-page-floor-title">
                   {floor === -999 ? 'Этаж не указан' : floor === 0 ? 'Цокольный этаж' : floor === -1 ? 'Подвал' : `${floor} этаж`}
                 </h3>
                 <div className="building-page-accordion-list">
                   {floorLocations.map((location) => (
                     <div key={location.id} className="building-page-accordion-item">
-                      {/* Location Header with Preview */}
                       <button
                         className={`building-page-accordion-header ${expandedLocation === location.id ? 'building-page-accordion-header-expanded' : ''}`}
                         onClick={() => handleLocationClick(location.id)}
@@ -205,7 +209,6 @@ const BuildingPage: React.FC = () => {
                         </div>
                       </button>
                       
-                      {/* Panorama Preview (when collapsed) */}
                       {expandedLocation !== location.id && location.panoramas && location.panoramas.length > 0 && (
                         <div className="building-page-location-preview" onClick={(e) => {
                           e.stopPropagation();
@@ -224,7 +227,6 @@ const BuildingPage: React.FC = () => {
                         </div>
                       )}
                       
-                      {/* Expanded Panorama Viewer */}
                       {expandedLocation === location.id && (
                         <div className="building-page-accordion-panorama">
                           {location.panoramas && location.panoramas.length > 0 ? (
@@ -283,10 +285,18 @@ const BuildingPage: React.FC = () => {
       </main>
 
       <footer className="building-page-footer">
-        <p>© 2026 РЭУ им. Г.В. Плеханова</p>
+        <p className="building-page-footer-text">© 2026 Plekhanov Russian University of Economics</p>
       </footer>
 
-      {/* Street View Mode Overlay */}
+      {/* Fixed Street View Button */}
+      <button
+        className="building-page-street-view-fixed"
+        onClick={() => setShowStreetView(true)}
+        disabled={locations.length === 0}
+      >
+        🧭 Свободное перемещение
+      </button>
+
       {showStreetView && (
         <StreetViewMode
           locations={locations}

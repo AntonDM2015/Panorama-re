@@ -1,0 +1,11 @@
+{
+  "expo": {
+    "name": "РЭУ Панорама",
+    "slug": "reu-panorama",
+    "version": "0.5.0",
+    "android": {
+      "package": "ru.reu.panorama",
+      "versionCode": 0.5
+    }
+  }
+}

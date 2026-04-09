@@ -57,7 +57,7 @@
 }
 
 /* ===================================
-   INFO BAR
+   INFO BAR - Always White Glassmorphism
    =================================== */
 
 .street-view-info-bar {
@@ -69,13 +69,13 @@
 }
 
 .street-view-location-info {
-  background: var(--glass-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
   border-radius: var(--radius-lg);
   padding: 16px 24px;
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
   text-align: center;
   min-width: 250px;
 }
@@ -84,18 +84,20 @@
   margin: 0 0 4px 0;
   font-size: 20px;
   font-weight: 700;
-  color: #F8FAFC;
+  color: #FFFFFF !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .street-view-location-floor {
   margin: 0;
   font-size: 14px;
-  color: #94A3B8;
+  color: rgba(255, 255, 255, 0.9) !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
   font-weight: 500;
 }
 
 /* ===================================
-   NAVIGATION
+   NAVIGATION - Always White Glassmorphism
    =================================== */
 
 .street-view-navigation {
@@ -112,7 +114,8 @@
   margin: 0 0 12px 0;
   font-size: 14px;
   font-weight: 600;
-  color: #94A3B8;
+  color: rgba(255, 255, 255, 0.8) !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
   text-align: center;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -126,13 +129,14 @@
 }
 
 .street-view-nav-button {
-  background: var(--glass-bg);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
   border-radius: var(--radius-md);
   padding: 12px 20px;
-  color: #F8FAFC;
+  color: #FFFFFF !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
@@ -144,9 +148,9 @@
 }
 
 .street-view-nav-button:hover {
-  background: var(--glass-bg-light);
-  border-color: var(--glass-border-hover);
-  box-shadow: var(--shadow-glow);
+  background: rgba(255, 255, 255, 0.25) !important;
+  border-color: rgba(255, 255, 255, 0.35) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   transform: translateY(-2px);
 }
 
@@ -155,7 +159,7 @@
 }
 
 /* ===================================
-   CLOSE BUTTON
+   CLOSE BUTTON - Always White Glassmorphism
    =================================== */
 
 .street-view-close {
@@ -165,12 +169,13 @@
   z-index: 11;
   width: 48px;
   height: 48px;
-  background: var(--glass-bg);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
   border-radius: 50%;
-  color: #F8FAFC;
+  color: #FFFFFF !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
   font-size: 24px;
   font-weight: 600;
   cursor: pointer;
@@ -181,8 +186,8 @@
 }
 
 .street-view-close:hover {
-  background: rgba(239, 68, 68, 0.3);
-  border-color: rgba(239, 68, 68, 0.5);
+  background: rgba(239, 68, 68, 0.4) !important;
+  border-color: rgba(239, 68, 68, 0.6) !important;
   transform: scale(1.1);
 }
 

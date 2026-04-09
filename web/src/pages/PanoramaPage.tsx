@@ -3,40 +3,29 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Location, PanoramaImage } from '../types';
 import { getLocationById as fetchLocation } from '../services/api';
 import PanoramaViewer from '../components/PanoramaViewer';
+import { useTheme } from '../contexts/ThemeContext';
 import './PanoramaPage.css';
 
 const PanoramaPage: React.FC = () => {
   const { locationId } = useParams<{ locationId: string }>();
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
   const [location, setLocation] = useState<Location | null>(null);
   const [currentPanoramaIndex, setCurrentPanoramaIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!locationId) {
-      console.log('[PanoramaPage] No locationId provided');
-      return;
-    }
-
-    console.log('[PanoramaPage] Component mounted, locationId:', locationId);
+    if (!locationId) return;
 
     const fetchLocationData = async () => {
       try {
         setLoading(true);
-        console.log('[PanoramaPage] Calling API: GET /api/locations/', locationId);
         const data = await fetchLocation(locationId);
-        console.log('[PanoramaPage] Location fetched:', {
-          id: data.id,
-          name: data.name,
-          panoramaUrl: data.panoramaUrl,
-          panoramas: data.panoramas?.length || 0,
-        });
         setLocation(data);
         setCurrentPanoramaIndex(0);
         setError(null);
       } catch (err: any) {
-        console.error('[PanoramaPage] Error fetching location:', err);
         setError(err.response?.data?.message || 'Не удалось загрузить локацию');
       } finally {
         setLoading(false);
@@ -49,7 +38,7 @@ const PanoramaPage: React.FC = () => {
   if (loading) {
     return (
       <div className="panorama-page-loading">
-        <div className="panorama-page-spinner"></div>
+        <div className="spinner"></div>
         <p className="panorama-page-loading-text">Загрузка...</p>
       </div>
     );
@@ -60,7 +49,7 @@ const PanoramaPage: React.FC = () => {
       <div className="panorama-page-error">
         <p className="panorama-page-error-title">Ошибка</p>
         <p className="panorama-page-error-text">{error || 'Локация не найдена'}</p>
-        <button onClick={() => navigate(-1)} className="panorama-page-back-button">
+        <button onClick={() => navigate(-1)} className="btn btn-primary">
           Назад
         </button>
       </div>
@@ -75,70 +64,74 @@ const PanoramaPage: React.FC = () => {
     : { id: location.id, url: location.panoramaUrl || '', title: location.name };
 
   const handlePrevious = () => {
-    console.log('[PanoramaPage] Previous button clicked');
     if (currentPanoramaIndex > 0) {
-      const newIndex = currentPanoramaIndex - 1;
-      console.log('[PanoramaPage] Navigating to panorama:', newIndex);
-      setCurrentPanoramaIndex(newIndex);
+      setCurrentPanoramaIndex(currentPanoramaIndex - 1);
     }
   };
 
   const handleNext = () => {
-    console.log('[PanoramaPage] Next button clicked');
     if (currentPanoramaIndex < panoramas.length - 1) {
-      const newIndex = currentPanoramaIndex + 1;
-      console.log('[PanoramaPage] Navigating to panorama:', newIndex);
-      setCurrentPanoramaIndex(newIndex);
+      setCurrentPanoramaIndex(currentPanoramaIndex + 1);
     }
   };
 
   return (
     <div className="panorama-page">
-      <div className="panorama-page-header">
-        <button className="panorama-page-back" onClick={() => navigate(-1)}>
-          ← Назад
-        </button>
-        <div className="panorama-page-info">
-          <h1 className="panorama-page-title">{location.name}</h1>
-          <p className="panorama-page-description">{location.description}</p>
+      {/* Header overlay */}
+      <div className="panorama-page-header-overlay">
+        <div className="panorama-page-header-content">
+          <div className="panorama-page-header-top">
+            <button className="panorama-page-back" onClick={() => navigate(-1)}>
+              <span className="panorama-page-back-icon">←</span>
+              <span>Назад</span>
+            </button>
+            <button className="theme-toggle" onClick={toggleTheme} aria-label="Переключить тему">
+              {theme === 'light' ? '🌙' : '☀️'}
+            </button>
+          </div>
+          <div className="panorama-page-info">
+            <h1 className="panorama-page-title">{location.name}</h1>
+            {location.description && (
+              <p className="panorama-page-description">{location.description}</p>
+            )}
+          </div>
         </div>
       </div>
 
+      {/* Panorama viewer */}
       <div className="panorama-page-viewer">
         <PanoramaViewer 
           imageUrl={currentPanorama.url}
           key={currentPanorama.id}
         />
-        
-        {hasMultiplePanoramas && (
-          <div className="panorama-page-controls">
-            <button
-              className="panorama-page-nav-button"
-              onClick={handlePrevious}
-              disabled={currentPanoramaIndex === 0}
-            >
-              ‹
-            </button>
-
-            <div className="panorama-page-counter">
-              <span className="panorama-page-counter-text">
-                {currentPanoramaIndex + 1} из {panoramas.length}
-              </span>
-              <span className="panorama-page-panorama-title">
-                {currentPanorama.title}
-              </span>
-            </div>
-
-            <button
-              className="panorama-page-nav-button"
-              onClick={handleNext}
-              disabled={currentPanoramaIndex === panoramas.length - 1}
-            >
-              ›
-            </button>
-          </div>
-        )}
       </div>
+      
+      {/* Navigation controls */}
+      {hasMultiplePanoramas && (
+        <div className="panorama-page-controls">
+          <button
+            className="panorama-page-nav-button"
+            onClick={handlePrevious}
+            disabled={currentPanoramaIndex === 0}
+          >
+            ‹
+          </button>
+
+          <div className="panorama-page-counter">
+            <span className="panorama-page-counter-text">
+              {currentPanoramaIndex + 1} из {panoramas.length}
+            </span>
+          </div>
+
+          <button
+            className="panorama-page-nav-button"
+            onClick={handleNext}
+            disabled={currentPanoramaIndex === panoramas.length - 1}
+          >
+            ›
+          </button>
+        </div>
+      )}
     </div>
   );
 };
