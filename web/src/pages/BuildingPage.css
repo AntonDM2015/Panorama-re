@@ -176,7 +176,7 @@
 
 .building-page-main {
   flex: 1;
-  padding-top: var(--spacing-xl);
+  padding-top: 140px;
   padding-bottom: 100px;
   padding-left: var(--spacing-xl);
   padding-right: var(--spacing-xl);
