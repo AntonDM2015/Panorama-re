@@ -5,27 +5,27 @@ const buildingService = new BuildingService();
 
 export class BuildingController {
   // GET /api/buildings
-  async getAll(req: Request, res: Response, next: NextFunction) {
+  getAll = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const buildings = await buildingService.getAllBuildings();
       res.json({ buildings });
     } catch (error) {
       next(error);
     }
-  }
+  };
 
   // GET /api/cities/:cityId/buildings
-  async getByCity(req: Request, res: Response, next: NextFunction) {
+  getByCity = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const buildings = await buildingService.getBuildingsByCity(req.params.cityId);
       res.json({ buildings });
     } catch (error) {
       next(error);
     }
-  }
+  };
 
   // GET /api/buildings/:id
-  async getById(req: Request, res: Response, next: NextFunction) {
+  getById = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const building = await buildingService.getBuildingById(req.params.id);
       if (!building) {
@@ -35,10 +35,10 @@ export class BuildingController {
     } catch (error) {
       next(error);
     }
-  }
+  };
 
   // POST /api/buildings (admin only)
-  async create(req: Request, res: Response, next: NextFunction) {
+  create = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { cityId, name, address, description, previewUrl } = req.body;
       if (!cityId || !name) {
@@ -55,10 +55,10 @@ export class BuildingController {
     } catch (error) {
       next(error);
     }
-  }
+  };
 
   // PUT /api/buildings/:id (admin only)
-  async update(req: Request, res: Response, next: NextFunction) {
+  update = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { name, address, description, previewUrl } = req.body;
       const building = await buildingService.updateBuilding(req.params.id, {
@@ -71,15 +71,15 @@ export class BuildingController {
     } catch (error) {
       next(error);
     }
-  }
+  };
 
   // DELETE /api/buildings/:id (admin only)
-  async delete(req: Request, res: Response, next: NextFunction) {
+  delete = async (req: Request, res: Response, next: NextFunction) => {
     try {
       await buildingService.deleteBuilding(req.params.id);
       res.json({ message: 'Корпус удалён' });
     } catch (error) {
       next(error);
     }
-  }
+  };
 }

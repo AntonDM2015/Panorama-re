@@ -36,6 +36,14 @@ export interface Location {
   navigationLinks?: NavigationLink[];
 }
 
+export interface PanoramaLink {
+  id: string;
+  fromPanoramaId: string;
+  toPanoramaId: string;
+  direction: string | null;
+  createdAt: string;
+}
+
 export interface NavigationLink {
   id: string;
   fromLocationId: string;

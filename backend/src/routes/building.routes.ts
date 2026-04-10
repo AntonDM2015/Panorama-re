@@ -8,15 +8,15 @@ const buildingController = new BuildingController();
 const locationController = new LocationController();
 
 // Public routes
-router.get('/', buildingController.getAll.bind(buildingController));
-router.get('/:id', buildingController.getById.bind(buildingController));
+router.get('/', buildingController.getAll);
+router.get('/:id', buildingController.getById);
 
 // Nested routes - locations by building
-router.get('/:buildingId/locations', locationController.getByBuilding.bind(locationController));
+router.get('/:buildingId/locations', locationController.getByBuilding);
 
 // Admin routes
-router.post('/', requireAuth, requireAdmin, buildingController.create.bind(buildingController));
-router.put('/:id', requireAuth, requireAdmin, buildingController.update.bind(buildingController));
-router.delete('/:id', requireAuth, requireAdmin, buildingController.delete.bind(buildingController));
+router.post('/', requireAuth, requireAdmin, buildingController.create);
+router.put('/:id', requireAuth, requireAdmin, buildingController.update);
+router.delete('/:id', requireAuth, requireAdmin, buildingController.delete);
 
 export default router;

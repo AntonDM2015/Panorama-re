@@ -1,12 +1,12 @@
 import { LocationRepository } from '../repositories/location.repository';
 import { PanoramaRepository } from '../repositories/panorama.repository';
-import { NavigationRepository } from '../repositories/navigation.repository';
+import { PanoramaLinkRepository } from '../repositories/panorama_link.repository';
 import { uploadPanoramaFile } from './storage.service';
 import { Location } from '../types';
 
 const locationRepo = new LocationRepository();
 const panoramaRepo = new PanoramaRepository();
-const navigationRepo = new NavigationRepository();
+const panoramaLinkRepo = new PanoramaLinkRepository();
 
 export class LocationService {
   async getAllLocations(): Promise<Location[]> {
@@ -25,9 +25,8 @@ export class LocationService {
     const panoramas = await panoramaRepo.getByLocationId(id);
     location.panoramas = panoramas;
 
-    // Load navigation links
-    const navigationLinks = await navigationRepo.getByLocationId(id);
-    location.navigationLinks = navigationLinks;
+    // Load navigation links (optional logic can be placed here if needed)
+    // Note: Panorama links are now fetched per-panorama or fetched individually when needed.
 
     return location;
   }
@@ -72,6 +71,10 @@ export class LocationService {
   }
 
   // Panorama management
+  async getAllPanoramas() {
+    return panoramaRepo.getAll();
+  }
+
   async getLocationPanoramas(locationId: string) {
     return panoramaRepo.getByLocationId(locationId);
   }
@@ -88,16 +91,16 @@ export class LocationService {
     return panoramaRepo.delete(id);
   }
 
-  // Navigation links management
-  async getLocationNavigationLinks(locationId: string) {
-    return navigationRepo.getByLocationId(locationId);
+  // Panorama links management
+  async getPanoramaLinks(panoramaId: string) {
+    return panoramaLinkRepo.getByPanoramaId(panoramaId);
   }
 
-  async createNavigationLink(data: { fromLocationId: string; toLocationId: string; direction?: string }) {
-    return navigationRepo.create(data);
+  async createPanoramaLink(data: { fromPanoramaId: string; toPanoramaId: string; direction?: string }) {
+    return panoramaLinkRepo.create(data);
   }
 
-  async deleteNavigationLink(id: string): Promise<void> {
-    return navigationRepo.delete(id);
+  async deletePanoramaLink(id: string): Promise<void> {
+    return panoramaLinkRepo.delete(id);
   }
 }

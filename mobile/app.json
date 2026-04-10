@@ -2,10 +2,15 @@
   "expo": {
     "name": "РЭУ Панорама",
     "slug": "reu-panorama",
-    "version": "0.5.0",
+    "version": "1.0.0",
     "android": {
       "package": "ru.reu.panorama",
-      "versionCode": 0.5
+      "versionCode": 1
+    },
+    "extra": {
+      "eas": {
+        "projectId": "fb143f1a-737e-4b48-bc9d-4177decd9b85"
+      }
     }
   }
 }

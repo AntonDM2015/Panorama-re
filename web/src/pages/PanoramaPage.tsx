@@ -39,7 +39,7 @@ const PanoramaPage: React.FC = () => {
     return (
       <div className="panorama-page-loading">
         <div className="spinner"></div>
-        <p className="panorama-page-loading-text">Загрузка...</p>
+        <p className="panorama-page-loading-text">Загрузка панорамы...</p>
       </div>
     );
   }
@@ -84,6 +84,9 @@ const PanoramaPage: React.FC = () => {
             <button className="panorama-page-back" onClick={() => navigate(-1)}>
               <span className="panorama-page-back-icon">←</span>
               <span>Назад</span>
+            </button>
+            <button className="panorama-page-back" onClick={() => navigate('/')} style={{ marginLeft: '12px' }}>
+              <span>🏡 На главную</span>
             </button>
             <button className="theme-toggle" onClick={toggleTheme} aria-label="Переключить тему">
               {theme === 'light' ? '🌙' : '☀️'}

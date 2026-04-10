@@ -1,129 +1,61 @@
-# Campus Panorama 360
+# Panorama 360 — Виртуальный тур по кампусу
 
-Кроссплатформенное мобильное приложение колледжа для просмотра панорамных фотографий кампуса (360°).
+Высокопроизводительное веб-приложение для просмотра 360° панорамных туров с собственным движком на WebGL2 и детализированной системой навигации.
 
-## Технологический стек
+## 🌟 Ключевые возможности
 
-- Mobile: React Native + Expo
-- 360 Viewer: react-three-fiber + Three.js
-- Navigation: React Navigation
-- Backend: Node.js + Express + TypeScript
-- Database: PostgreSQL
-- Storage: Supabase Storage
-- Auth: JWT
+- **Собственный движок WebGL2**: Высокопроизводительная сферическая проекция для плавного просмотра панорам.
+- **Детализированная навигация**: Перемещение в стиле "Street View" между конкретными точками (панорамами).
+- **Панель администратора**: Полный контроль над зданиями, локациями и панорамами с интерактивным редактором связей.
+- **Адаптивный дизайн**: Премиальный пользовательский интерфейс в темной теме, работающий на десктопах и планшетах.
+- **Автоматические переходы**: Умная линейная навигация для последовательных панорам.
 
-## Структура проекта
+## 📂 Структура проекта
 
-```text
-Panorama/
-  mobile/
-    assets/
-      panoramas/
-    src/
-      components/
-      screens/
-      navigation/
-      services/
-      types/
-      constants/
-      hooks/
-    App.tsx
-    package.json
-    tsconfig.json
-    babel.config.js
-  backend/
-    src/
-      app.ts
-      server.ts
-      config/
-      controllers/
-      routes/
-      middleware/
-      services/
-      repositories/
-      utils/
-      types/
-    uploads/
-    .env
-    package.json
-    tsconfig.json
-```
+- `web/`: Фронтенд на React с использованием Vite и кастомного движка WebGL2.
+- `backend/`: API на Node.js + Express с использованием TypeScript.
+- `docs/`: Подробная техническая документация и инструкции по развертыванию.
 
-## 1) Инициализация mobile (Expo)
+## 📖 Документация
+
+Для получения подробной информации, пожалуйста, обратитесь к следующим руководствам:
+
+1. 🚀 **[Руководство по развертыванию](docs/deployment.md)** — Как настроить Supabase и запустить проект в продакшн.
+2. 🔌 **[Справочник API](docs/api.md)** — Эндпоинты бэкенда и модели данных.
+3. 🛠️ **[Руководство администратора](docs/admin_guide.md)** — Как управлять контентом и создавать виртуальные туры.
+4. ⚙️ **[Технические детали](docs/technical_details.md)** — Глубокое погружение в работу движка WebGL и логику навигации.
+
+## ⚡ Быстрый старт (локально)
+
+### Предварительные требования
+
+- Node.js (v18+)
+- Аккаунт Supabase (для БД и хранилища)
+
+### 1. Настройка бэкенда
 
 ```bash
-cd c:\Users\Anton\Documents\trae_projects\Panorama
-npx create-expo-app@latest mobile --template
-cd mobile
-```
-
-## 2) Установка зависимостей mobile
-
-```bash
-npm install three @react-three/fiber @react-three/drei @react-navigation/native @react-navigation/native-stack react-native-screens react-native-safe-area-context react-native-gesture-handler react-native-reanimated expo-sensors expo-gl expo-asset expo-file-system
-```
-
-## 3) Запуск mobile
-
-```bash
-cd c:\Users\Anton\Documents\trae_projects\Panorama\mobile
-npx expo start
-```
-
-## 4) Инициализация backend
-
-```bash
-cd c:\Users\Anton\Documents\trae_projects\Panorama
-mkdir backend
 cd backend
-npm init -y
-```
-
-## 5) Установка зависимостей backend
-
-```bash
-npm install express cors helmet express-rate-limit cookie-parser dotenv jsonwebtoken bcryptjs pg zod @supabase/supabase-js http-errors multer
-npm install -D typescript ts-node-dev eslint eslint-config-prettier @typescript-eslint/parser @typescript-eslint/eslint-plugin @types/node @types/express @types/cors @types/cookie-parser @types/jsonwebtoken @types/bcryptjs @types/pg @types/http-errors @types/multer
-```
-
-## 6) Настройка PostgreSQL
-
-1. Создать базу данных `campus_panorama`.
-2. Выполнить SQL из `backend/src/config/schema.sql`.
-3. Заполнить `backend/.env` корректными значениями.
-
-## 7) Запуск backend (development)
-
-```bash
-cd c:\Users\Anton\Documents\trae_projects\Panorama\backend
+npm install
+cp .env.example .env # Заполните учетные данные Supabase
 npm run dev
 ```
 
-Сервер поднимется на `http://localhost:5000`.
+### 2. Настройка веб-фронтенда
 
-## 8) API endpoints
-
-- `GET /api/health` - проверка здоровья сервера
-- `POST /api/auth/register` - регистрация
-- `POST /api/auth/login` - вход
-- `GET /api/auth/me` - профиль текущего пользователя
-- `GET /api/locations` - список локаций
-- `GET /api/locations/:locationId` - локация по ID
-- `POST /api/locations` - создать локацию (только admin, multipart/form-data, поле файла: `panorama`)
-
-## 9) Expo + Reanimated
-
-В `mobile/babel.config.js` должен быть подключен плагин:
-
-```js
-plugins: ["react-native-reanimated/plugin"];
+```bash
+cd web
+npm install
+cp .env.example .env # Установите VITE_API_BASE_URL
+npm run dev
 ```
 
-## 10) Что нужно заменить перед продом
+## 🛠 Технологический стек
 
-- `SUPABASE_URL`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `JWT_ACCESS_SECRET`
-- `JWT_REFRESH_SECRET`
-- `CORS_ORIGIN`
-- публичные тестовые URL панорам в `LocationsScreen.tsx`
+- **Фронтенд**: React, TypeScript, WebGL2, Vanilla CSS.
+- **Бэкенд**: Node.js, Express, TypeScript, Multer.
+- **База данных**: Supabase (PostgreSQL).
+- **Хранилище**: Supabase Storage.
+
+---
+© 2026 Команда Panorama 360

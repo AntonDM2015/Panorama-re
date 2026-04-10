@@ -1,7 +1,7 @@
-/* ===================================
+/* ============================================================
    STREET VIEW MODE
-   Fullscreen navigation overlay
-   =================================== */
+   Fullscreen navigation overlay with WebGL panorama
+   ============================================================ */
 
 .street-view-overlay {
   position: fixed;
@@ -23,16 +23,16 @@
   display: flex;
   flex-direction: column;
   opacity: 1;
-  transition: opacity 0.5s ease-out;
+  transition: opacity 0.4s ease-out;
 }
 
 .street-view-content.street-view-transitioning {
   opacity: 0.3;
 }
 
-/* ===================================
+/* ============================================================
    PANORAMA CONTAINER
-   =================================== */
+   ============================================================ */
 
 .street-view-panorama-container {
   flex: 1;
@@ -40,7 +40,7 @@
   overflow: hidden;
 }
 
-.street-view-panorama-container .panorama-viewer-container {
+.street-view-panorama-container .pv-container {
   width: 100%;
   height: 100%;
 }
@@ -51,149 +51,104 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--glass-bg);
+  background: rgba(15, 36, 88, 0.6);
   color: #94A3B8;
   font-size: 18px;
 }
 
-/* ===================================
-   INFO BAR - Always White Glassmorphism
-   =================================== */
+/* ============================================================
+   INFO BAR
+   ============================================================ */
 
 .street-view-info-bar {
   position: absolute;
   top: 20px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 10;
+  z-index: 40;
+  animation: sv-info-in 0.4s ease-out;
+}
+
+@keyframes sv-info-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
 }
 
 .street-view-location-info {
-  background: rgba(255, 255, 255, 0.15) !important;
-  backdrop-filter: blur(20px) !important;
-  -webkit-backdrop-filter: blur(20px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.25) !important;
-  border-radius: var(--radius-lg);
-  padding: 16px 24px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 14px;
+  padding: 14px 24px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
   text-align: center;
-  min-width: 250px;
+  min-width: 220px;
 }
 
 .street-view-location-name {
-  margin: 0 0 4px 0;
-  font-size: 20px;
+  margin: 0 0 2px 0;
+  font-size: 18px;
   font-weight: 700;
-  color: #FFFFFF !important;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  color: #FFFFFF;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
 }
 
 .street-view-location-floor {
   margin: 0;
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.9) !important;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.85);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
   font-weight: 500;
 }
 
-/* ===================================
-   NAVIGATION - Always White Glassmorphism
-   =================================== */
-
-.street-view-navigation {
-  position: absolute;
-  bottom: 80px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 10;
-  width: 90%;
-  max-width: 600px;
-}
-
-.street-view-navigation-title {
-  margin: 0 0 12px 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.8) !important;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
-  text-align: center;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.street-view-navigation-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  justify-content: center;
-}
-
-.street-view-nav-button {
-  background: rgba(255, 255, 255, 0.15) !important;
-  backdrop-filter: blur(20px) !important;
-  -webkit-backdrop-filter: blur(20px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.25) !important;
-  border-radius: var(--radius-md);
-  padding: 12px 20px;
-  color: #FFFFFF !important;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--transition-base);
-  min-height: 48px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.street-view-nav-button:hover {
-  background: rgba(255, 255, 255, 0.25) !important;
-  border-color: rgba(255, 255, 255, 0.35) !important;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-  transform: translateY(-2px);
-}
-
-.street-view-nav-button:active {
-  transform: translateY(0);
-}
-
-/* ===================================
-   CLOSE BUTTON - Always White Glassmorphism
-   =================================== */
+/* ============================================================
+   CLOSE BUTTON
+   ============================================================ */
 
 .street-view-close {
   position: absolute;
   top: 20px;
   right: 20px;
-  z-index: 11;
-  width: 48px;
-  height: 48px;
-  background: rgba(255, 255, 255, 0.15) !important;
-  backdrop-filter: blur(20px) !important;
-  -webkit-backdrop-filter: blur(20px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  z-index: 50;
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 50%;
-  color: #FFFFFF !important;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  color: #FFFFFF;
   font-size: 24px;
   font-weight: 600;
   cursor: pointer;
-  transition: all var(--transition-base);
+  transition: all 0.2s ease-out;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 }
 
 .street-view-close:hover {
-  background: rgba(239, 68, 68, 0.4) !important;
-  border-color: rgba(239, 68, 68, 0.6) !important;
-  transform: scale(1.1);
+  background: rgba(239, 68, 68, 0.35);
+  border-color: rgba(239, 68, 68, 0.5);
+  transform: scale(1.08);
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.3);
 }
 
-/* ===================================
+.street-view-close:active {
+  transform: scale(0.95);
+}
+
+/* ============================================================
    LOADING STATE
-   =================================== */
+   ============================================================ */
 
 .street-view-loading {
   position: fixed;
@@ -207,18 +162,19 @@
   align-items: center;
   justify-content: center;
   gap: 20px;
+  z-index: 9999;
 }
 
 .street-view-spinner {
-  width: 48px;
-  height: 48px;
-  border: 4px solid rgba(56, 189, 248, 0.2);
-  border-top-color: var(--accent-cyan);
+  width: 44px;
+  height: 44px;
+  border: 3px solid rgba(56, 189, 248, 0.15);
+  border-top-color: #38BDF8;
   border-radius: 50%;
-  animation: spin 1s linear infinite;
+  animation: sv-spin 0.7s linear infinite;
 }
 
-@keyframes spin {
+@keyframes sv-spin {
   to { transform: rotate(360deg); }
 }
 
@@ -228,76 +184,42 @@
   font-weight: 500;
 }
 
-/* ===================================
-   RESPONSIVE DESIGN
-   =================================== */
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
 
-/* Mobile */
 @media (max-width: 768px) {
   .street-view-info-bar {
     top: 12px;
     left: 12px;
-    right: 12px;
+    right: 60px;
     transform: none;
   }
 
   .street-view-location-info {
-    padding: 12px 16px;
+    padding: 10px 16px;
     min-width: auto;
+    border-radius: 12px;
   }
 
   .street-view-location-name {
-    font-size: 18px;
+    font-size: 16px;
   }
 
   .street-view-location-floor {
-    font-size: 13px;
-  }
-
-  .street-view-navigation {
-    bottom: 60px;
-    left: 12px;
-    right: 12px;
-    width: auto;
-  }
-
-  .street-view-navigation-title {
-    font-size: 13px;
-  }
-
-  .street-view-navigation-buttons {
-    flex-direction: column;
-  }
-
-  .street-view-nav-button {
-    width: 100%;
-    justify-content: center;
+    font-size: 12px;
   }
 
   .street-view-close {
     top: 12px;
     right: 12px;
-    width: 44px;
-    height: 44px;
-    font-size: 22px;
+    width: 40px;
+    height: 40px;
   }
 }
 
-/* Tablet */
 @media (min-width: 768px) and (max-width: 1024px) {
-  .street-view-navigation {
-    max-width: 500px;
-  }
-
-  .street-view-nav-button {
-    padding: 10px 16px;
-    font-size: 14px;
-  }
-}
-
-/* Desktop */
-@media (min-width: 1024px) {
-  .street-view-panorama-container {
-    aspect-ratio: 16 / 9;
+  .street-view-location-info {
+    padding: 12px 20px;
   }
 }

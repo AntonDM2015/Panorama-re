@@ -361,6 +361,24 @@
 
 .building-page-accordion-panorama {
   background-color: var(--bg-primary);
+  min-height: 500px;
+  position: relative;
+}
+
+.building-page-accordion-panorama .pv-container {
+  position: absolute;
+  inset: 0;
+  min-height: 500px;
+}
+
+.panorama-viewer-wrapper {
+  transition: filter 0.3s ease;
+  min-height: 500px;
+  position: relative;
+}
+
+.panorama-viewer-wrapper.panorama-transitioning {
+  filter: blur(8px);
 }
 
 .building-page-panorama-nav {
@@ -606,8 +624,21 @@
   }
 
   .building-page-panorama-nav {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: max-content;
+    max-width: 90vw;
     gap: var(--spacing-md);
-    padding: var(--spacing-md);
+    padding: var(--spacing-md) var(--spacing-lg);
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-full);
+    box-shadow: var(--shadow-lg);
+    z-index: 90;
   }
 
   .building-page-nav-btn {

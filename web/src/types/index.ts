@@ -33,15 +33,14 @@ export interface Location {
   panoramaUrl: string | null;
   createdAt: string;
   panoramas?: PanoramaImage[];
-  navigationLinks?: NavigationLink[];
 }
 
-export interface NavigationLink {
+export interface PanoramaLink {
   id: string;
-  fromLocationId: string;
-  toLocationId: string;
+  fromPanoramaId: string;
+  toPanoramaId: string;
   direction: string | null;
-  toLocation?: Location;
+  toPanorama?: PanoramaImage;
 }
 
 export interface PanoramaImage {
@@ -51,6 +50,7 @@ export interface PanoramaImage {
   title: string | null;
   sortOrder: number;
   createdAt: string;
+  links?: PanoramaLink[];
 }
 
 export interface AuthRequest {

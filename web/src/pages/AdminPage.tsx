@@ -1,19 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getCities, getBuildings, getLocations, createCity, createBuilding, createLocation, deleteCity, deleteBuilding, deleteLocation, getAuthToken, updateCity, updateBuilding, updateLocation, getPanoramasByLocation, createPanorama, deletePanorama, getNavigationLinks, createNavigationLink, deleteNavigationLink } from '../services/api';
-import { City, Building, Location, PanoramaImage, NavigationLink } from '../types';
+import { getCities, getBuildings, getLocations, createCity, createBuilding, createLocation, deleteCity, deleteBuilding, deleteLocation, isAuthenticated, login, setTokens, logout, updateCity, updateBuilding, updateLocation, getPanoramasByLocation, createPanorama, deletePanorama, getPanoramaLinks, createPanoramaLink, deletePanoramaLink, getAllPanoramas } from '../services/api';
+import { City, Building, Location, PanoramaImage, PanoramaLink } from '../types';
 import { useTheme } from '../contexts/ThemeContext';
 import './AdminPage.css';
 
 const AdminPage: React.FC = () => {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authState, setAuthState] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [cities, setCities] = useState<City[]>([]);
   const [buildings, setBuildings] = useState<Building[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
+  const [allPanoramas, setAllPanoramas] = useState<PanoramaImage[]>([]);
   const [activeTab, setActiveTab] = useState<'cities' | 'buildings' | 'locations'>('cities');
   const [loading, setLoading] = useState(false);
   const [showCityForm, setShowCityForm] = useState(false);
@@ -36,18 +37,24 @@ const AdminPage: React.FC = () => {
   const [locationPanoramas, setLocationPanoramas] = useState<PanoramaImage[]>([]);
   const [newPanoramaUrl, setNewPanoramaUrl] = useState('');
   const [newPanoramaTitle, setNewPanoramaTitle] = useState('');
-  const [locationNavLinks, setLocationNavLinks] = useState<NavigationLink[]>([]);
+  
+  // Link management per panorama
+  const [expandedPanoramaLinks, setExpandedPanoramaLinks] = useState<string | null>(null);
+  const [panoramaLinks, setPanoramaLinks] = useState<Record<string, PanoramaLink[]>>({});
   const [newNavLinkTargetId, setNewNavLinkTargetId] = useState('');
   const [newNavLinkDirection, setNewNavLinkDirection] = useState('');
 
   const COUNTRIES = ['Россия', 'ОАЭ', 'Армения', 'Узбекистан', 'Беларусь', 'Монголия'];
 
   useEffect(() => {
-    const token = getAuthToken();
-    if (token) {
-      setIsAuthenticated(true);
-      fetchData();
+    // Check if user is authenticated
+    if (!isAuthenticated()) {
+      console.log('[Admin] No authentication token found');
+      return;
     }
+    
+    setAuthState(true);
+    fetchData();
   }, []);
 
   const fetchData = async () => {
@@ -60,6 +67,14 @@ const AdminPage: React.FC = () => {
       setCities(citiesData);
       setBuildings(buildingsData);
       setLocations(locationsData);
+
+      try {
+        const panoramasData = await getAllPanoramas();
+        setAllPanoramas(panoramasData);
+      } catch (panoramasError) {
+        console.error('[Admin] Error fetching panoramas:', panoramasError);
+        setAllPanoramas([]);
+      }
     } catch (err) {
       console.error('[Admin] Error fetching data:', err);
     }
@@ -68,20 +83,16 @@ const AdminPage: React.FC = () => {
   const handleLogin = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
+      const data = await login(email, password);
       
-      if (!response.ok) throw new Error('Login failed');
-      
-      const data = await response.json();
-      console.log('[Admin] Login response:', data);
+      console.log('[Admin] Login successful');
       console.log('[Admin] Access token:', data.tokens.accessToken);
-      localStorage.setItem('auth_token', data.tokens.accessToken);
-      console.log('[Admin] Token saved to localStorage');
-      setIsAuthenticated(true);
+      
+      // Save both tokens
+      setTokens(data.tokens.accessToken, data.tokens.refreshToken);
+      console.log('[Admin] Tokens saved to localStorage');
+      
+      setAuthState(true);
       fetchData();
     } catch (err: any) {
       console.error('[Admin] Login error:', err);
@@ -275,56 +286,65 @@ const AdminPage: React.FC = () => {
   const handleManagePanoramas = async (location: Location) => {
     setSelectedLocation(location);
     setShowPanoramaModal(true);
+    setExpandedPanoramaLinks(null); // Reset expands
     try {
       const panoramas = await getPanoramasByLocation(location.id);
       setLocationPanoramas(panoramas);
-      
-      // Load navigation links
-      const navLinks = await getNavigationLinks(location.id);
-      setLocationNavLinks(navLinks);
     } catch (err) {
       console.error('[Admin] Error loading panoramas:', err);
       setLocationPanoramas([]);
-      setLocationNavLinks([]);
     }
   };
 
-  const handleAddNavLink = async () => {
-    if (!selectedLocation || !newNavLinkTargetId.trim()) return;
-    if (newNavLinkTargetId === selectedLocation.id) {
+  const handleTogglePanoramaLinks = async (panoramaId: string) => {
+    if (expandedPanoramaLinks === panoramaId) {
+      setExpandedPanoramaLinks(null);
+      return;
+    }
+    
+    setExpandedPanoramaLinks(panoramaId);
+    try {
+      const links = await getPanoramaLinks(panoramaId);
+      setPanoramaLinks(prev => ({ ...prev, [panoramaId]: links }));
+    } catch (err) {
+      console.error('[Admin] Error loading panorama links:', err);
+    }
+  };
+
+  const handleAddPanoramaLink = async (panoramaId: string) => {
+    if (!newNavLinkTargetId.trim()) return;
+    if (newNavLinkTargetId === panoramaId) {
       alert('Нельзя создать ссылку на саму себя!');
       return;
     }
     try {
-      console.log('[Admin] Adding navigation link:', newNavLinkTargetId);
-      await createNavigationLink(selectedLocation.id, {
-        toLocationId: newNavLinkTargetId,
+      console.log('[Admin] Adding panorama link to:', newNavLinkTargetId);
+      await createPanoramaLink(panoramaId, {
+        toPanoramaId: newNavLinkTargetId,
         direction: newNavLinkDirection || undefined
       });
       setNewNavLinkTargetId('');
       setNewNavLinkDirection('');
       
-      // Reload navigation links
-      const navLinks = await getNavigationLinks(selectedLocation.id);
-      setLocationNavLinks(navLinks);
+      // Reload links
+      const links = await getPanoramaLinks(panoramaId);
+      setPanoramaLinks(prev => ({ ...prev, [panoramaId]: links }));
     } catch (err: any) {
-      console.error('[Admin] Error adding navigation link:', err);
+      console.error('[Admin] Error adding panorama link:', err);
       alert(`Ошибка при добавлении ссылки: ${err.response?.data?.message || err.message}`);
     }
   };
 
-  const handleDeleteNavLink = async (linkId: string) => {
+  const handleDeletePanoramaLink = async (panoramaId: string, linkId: string) => {
     if (!confirm('Удалить эту навигационную ссылку?')) return;
     try {
-      await deleteNavigationLink(linkId);
+      await deletePanoramaLink(linkId);
       
-      // Reload navigation links
-      if (selectedLocation) {
-        const navLinks = await getNavigationLinks(selectedLocation.id);
-        setLocationNavLinks(navLinks);
-      }
+      // Reload links
+      const links = await getPanoramaLinks(panoramaId);
+      setPanoramaLinks(prev => ({ ...prev, [panoramaId]: links }));
     } catch (err: any) {
-      console.error('[Admin] Error deleting navigation link:', err);
+      console.error('[Admin] Error deleting panorama link:', err);
       alert('Ошибка при удалении ссылки');
     }
   };
@@ -369,12 +389,12 @@ const AdminPage: React.FC = () => {
     setLocationPanoramas([]);
     setNewPanoramaUrl('');
     setNewPanoramaTitle('');
-    setLocationNavLinks([]);
+
     setNewNavLinkTargetId('');
     setNewNavLinkDirection('');
   };
 
-  if (!isAuthenticated) {
+  if (!authState) {
     return (
       <div className="admin-login">
         <h1 className="admin-login-title">Вход в панель администратора</h1>
@@ -409,9 +429,31 @@ const AdminPage: React.FC = () => {
             <button className="admin-back" onClick={() => navigate('/')}>← На сайт</button>
             <h1 className="admin-title">Панель администратора</h1>
           </div>
-          <button className="theme-toggle" onClick={toggleTheme} aria-label="Переключить тему">
-            {theme === 'light' ? '🌙' : '☀️'}
-          </button>
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            <button 
+              className="admin-logout-btn" 
+              onClick={() => {
+                logout();
+                setAuthState(false);
+                navigate('/');
+              }}
+              style={{
+                background: 'rgba(255, 255, 255, 0.1)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                color: 'var(--header-text)',
+                padding: '8px 16px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: 600
+              }}
+            >
+              Выйти
+            </button>
+            <button className="theme-toggle" onClick={toggleTheme} aria-label="Переключить тему">
+              {theme === 'light' ? '🌙' : '☀️'}
+            </button>
+          </div>
         </div>
       </header>
 
@@ -611,75 +653,94 @@ const AdminPage: React.FC = () => {
                   ) : (
                     locationPanoramas.map((panorama, index) => (
                       <div key={panorama.id} className="admin-panorama-item">
-                        <div className="admin-panorama-item-content">
-                          <span className="admin-panorama-number">{index + 1}.</span>
-                          <div>
-                            <p className="admin-panorama-title">{panorama.title || 'Без названия'}</p>
-                            <p className="admin-panorama-url">{panorama.url}</p>
+                        <div className="admin-panorama-item-header">
+                          <div className="admin-panorama-item-content">
+                            <span className="admin-panorama-number">{index + 1}.</span>
+                            <div>
+                              <p className="admin-panorama-title">{panorama.title || 'Без названия'}</p>
+                              <p className="admin-panorama-url">{panorama.url}</p>
+                            </div>
+                          </div>
+                          <div className="admin-panorama-actions">
+                            <button className="admin-navlink-button" onClick={() => handleTogglePanoramaLinks(panorama.id)}>
+                              {expandedPanoramaLinks === panorama.id ? 'Скрыть переходы' : 'Настроить переходы'}
+                            </button>
+                            <button className="admin-delete-button" onClick={() => handleDeletePanorama(panorama.id)}>Удалить</button>
                           </div>
                         </div>
-                        <button className="admin-delete-button" onClick={() => handleDeletePanorama(panorama.id)}>Удалить</button>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
 
-              {/* Navigation Links Section */}
-              <div className="admin-modal-section">
-                <h3 className="admin-section-title">Навигационные ссылки</h3>
-                <div className="admin-navlink-form">
-                  <select
-                    value={newNavLinkTargetId}
-                    onChange={(e) => setNewNavLinkTargetId(e.target.value)}
-                    className="admin-form-select"
-                  >
-                    <option value="">Выберите локацию</option>
-                    {locations
-                      .filter(loc => loc.id !== selectedLocation?.id)
-                      .map(loc => (
-                        <option key={loc.id} value={loc.id}>
-                          {loc.name} {loc.type === 'room' ? `(Кабинет)` : ''}
-                        </option>
-                      ))}
-                  </select>
-                  <input
-                    type="text"
-                    placeholder="Направление (опционально)"
-                    value={newNavLinkDirection}
-                    onChange={(e) => setNewNavLinkDirection(e.target.value)}
-                    className="admin-form-input"
-                  />
-                  <button onClick={handleAddNavLink} className="admin-form-button">
-                    Добавить ссылку
-                  </button>
-                </div>
+                        {/* Panorama Links Dropdown Area */}
+                        {expandedPanoramaLinks === panorama.id && (
+                          <div className="admin-panorama-links-container">
+                            <h4 className="admin-links-title">Ссылки для этой панорамы</h4>
+                            
+                            <div className="admin-navlink-form">
+                              <select
+                                value={newNavLinkTargetId}
+                                onChange={(e) => setNewNavLinkTargetId(e.target.value)}
+                                className="admin-form-select"
+                              >
+                                <option value="">Выберите панораму (цель)</option>
+                                {/* Group panoramas by location using allPanoramas */}
+                                {locations.map(loc => {
+                                  const locPanoramas = allPanoramas.filter(p => p.locationId === loc.id);
+                                  if (locPanoramas.length === 0) return null;
+                                  return (
+                                    <optgroup key={loc.id} label={loc.name}>
+                                      {locPanoramas.map(p => (
+                                        <option key={p.id} value={p.id} disabled={p.id === panorama.id}>
+                                          {p.title || `Без названия (ID: ${p.id.slice(0, 4)}...)`}
+                                        </option>
+                                      ))}
+                                    </optgroup>
+                                  );
+                                })}
+                              </select>
+                              <input
+                                type="text"
+                                placeholder="Направление (в градусах)"
+                                value={newNavLinkDirection}
+                                onChange={(e) => setNewNavLinkDirection(e.target.value)}
+                                className="admin-form-input"
+                              />
+                              <button onClick={() => handleAddPanoramaLink(panorama.id)} className="admin-form-button">
+                                Привязать
+                              </button>
+                            </div>
 
-                <div className="admin-navlink-list">
-                  {locationNavLinks.length === 0 ? (
-                    <p className="admin-empty-text">Навигационные ссылки не добавлены</p>
-                  ) : (
-                    locationNavLinks.map((link) => {
-                      const targetLocation = locations.find(loc => loc.id === link.toLocationId);
-                      return (
-                        <div key={link.id} className="admin-navlink-item">
-                          <div className="admin-navlink-item-content">
-                            <span className="admin-navlink-arrow">→</span>
-                            <div>
-                              <p className="admin-navlink-target">
-                                {targetLocation?.name || 'Неизвестная локация'}
-                              </p>
-                              {link.direction && (
-                                <p className="admin-navlink-direction">
-                                  Направление: {link.direction}
-                                </p>
+                            <div className="admin-navlink-list">
+                              {!panoramaLinks[panorama.id] || panoramaLinks[panorama.id].length === 0 ? (
+                                <p className="admin-empty-text">Переходы не настроены</p>
+                              ) : (
+                                panoramaLinks[panorama.id].map((link) => {
+                                  const targetPanorama = allPanoramas.find(p => p.id === link.toPanoramaId);
+                                  const targetLocation = targetPanorama ? locations.find(l => l.id === targetPanorama.locationId) : null;
+                                  return (
+                                    <div key={link.id} className="admin-navlink-item">
+                                      <div className="admin-navlink-item-content">
+                                        <span className="admin-navlink-arrow">→</span>
+                                        <div>
+                                          <p className="admin-navlink-target">
+                                            {targetPanorama?.title || 'Без названия'} 
+                                            <span className="admin-navlink-target-loc"> ({targetLocation?.name || 'Неизвестная локация'})</span>
+                                          </p>
+                                          {link.direction && (
+                                            <p className="admin-navlink-direction">
+                                              Направление: {link.direction}°
+                                            </p>
+                                          )}
+                                        </div>
+                                      </div>
+                                      <button className="admin-delete-button" onClick={() => handleDeletePanoramaLink(panorama.id, link.id)}>Удалить</button>
+                                    </div>
+                                  );
+                                })
                               )}
                             </div>
                           </div>
-                          <button className="admin-delete-button" onClick={() => handleDeleteNavLink(link.id)}>Удалить</button>
-                        </div>
-                      );
-                    })
+                        )}
+                      </div>
+                    ))
                   )}
                 </div>
               </div>

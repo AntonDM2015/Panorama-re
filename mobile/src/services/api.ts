@@ -1,242 +1,293 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { CampusLocation } from "../types/navigation";
+import NetInfo from "@react-native-community/netinfo";
 
-type ApiLocationItem = {
+// ==================== TYPES ====================
+
+export type City = {
   id: string;
   name: string;
-  description: string;
-  panoramaUrl: string;
-  previewUrl: string;
+  country?: string;
   createdAt: string;
 };
 
-type LocationsApiResponse = {
-  locations: ApiLocationItem[];
+export type Building = {
+  id: string;
+  cityId: string;
+  name: string;
+  address?: string;
+  description?: string;
+  previewUrl?: string;
+  createdAt: string;
 };
 
-type AuthResponse = {
-  user: {
-    id: string;
-    email: string;
-    role: "student" | "admin";
-    createdAt: string;
-  };
-  tokens: {
-    accessToken: string;
-    refreshToken: string;
-  };
+export type Panorama = {
+  id: string;
+  locationId: string;
+  url: string;
+  title?: string;
+  sortOrder: number;
+  createdAt: string;
 };
 
-type MeResponse = {
-  user: {
-    userId: string;
-    email: string;
-    role: "student" | "admin";
-  };
+export type Location = {
+  id: string;
+  buildingId: string;
+  name: string;
+  description?: string;
+  floor?: number;
+  type: "location" | "room";
+  roomNumber?: string;
+  previewUrl?: string;
+  panoramas?: Panorama[];
+  createdAt: string;
 };
+
+// ==================== API CONFIG ====================
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL?.trim() ?? "";
-
-const LOCATIONS_CACHE_KEY = "@campus_panorama_locations_cache";
-const LOCATIONS_CACHE_TIMESTAMP_KEY = "@campus_panorama_locations_cache_timestamp";
-const CACHE_DURATION_MS = 5 * 60 * 1000;
 
 function assertApiBaseUrl(): string {
   if (!API_BASE_URL) {
     throw new Error("EXPO_PUBLIC_API_BASE_URL is not set");
   }
-
   return API_BASE_URL;
 }
 
-function mapApiLocationToCampusLocation(apiLocation: ApiLocationItem): CampusLocation {
-  return {
-    id: apiLocation.id,
-    title: apiLocation.name,
-    description: apiLocation.description,
-    panoramaUrl: apiLocation.panoramaUrl,
-    previewSource: apiLocation.previewUrl,
-  };
-}
+// ==================== CACHE CONFIG ====================
 
-async function getAccessToken(): Promise<string | null> {
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+type CacheEntry<T> = {
+  data: T;
+  timestamp: number;
+};
+
+async function getFromCache<T>(key: string): Promise<T | null> {
   try {
-    return await AsyncStorage.getItem("@campus_panorama_access_token");
+    const cached = await AsyncStorage.getItem(key);
+    if (!cached) return null;
+
+    const entry: CacheEntry<T> = JSON.parse(cached);
+    const age = Date.now() - entry.timestamp;
+
+    if (age < CACHE_TTL_MS) {
+      return entry.data;
+    }
+
+    // Cache expired
+    await AsyncStorage.removeItem(key);
+    return null;
   } catch (error) {
-    console.error("Failed to get access token:", error);
+    console.error(`[Cache] Failed to read ${key}:`, error);
     return null;
   }
 }
 
-async function saveTokens(accessToken: string, refreshToken: string): Promise<void> {
+async function setCache<T>(key: string, data: T): Promise<void> {
   try {
-    await AsyncStorage.setItem("@campus_panorama_access_token", accessToken);
-    await AsyncStorage.setItem("@campus_panorama_refresh_token", refreshToken);
+    const entry: CacheEntry<T> = {
+      data,
+      timestamp: Date.now(),
+    };
+    await AsyncStorage.setItem(key, JSON.stringify(entry));
   } catch (error) {
-    console.error("Failed to save tokens:", error);
-    throw error;
+    console.error(`[Cache] Failed to write ${key}:`, error);
   }
 }
 
-async function clearTokens(): Promise<void> {
-  try {
-    await AsyncStorage.removeItem("@campus_panorama_access_token");
-    await AsyncStorage.removeItem("@campus_panorama_refresh_token");
-  } catch (error) {
-    console.error("Failed to clear tokens:", error);
-    throw error;
-  }
-}
+// ==================== API FUNCTIONS ====================
 
-export function getApiBaseUrl(): string {
-  return assertApiBaseUrl();
-}
+// CITIES
+export async function getCities(forceRefresh = false): Promise<City[]> {
+  const cacheKey = "@panorama_cache_cities";
 
-export async function fetchLocationsFromApi(forceRefresh = false): Promise<CampusLocation[]> {
+  // Try cache first
   if (!forceRefresh) {
-    try {
-      const cachedData = await AsyncStorage.getItem(LOCATIONS_CACHE_KEY);
-      const cachedTimestamp = await AsyncStorage.getItem(LOCATIONS_CACHE_TIMESTAMP_KEY);
-
-      if (cachedData && cachedTimestamp) {
-        const age = Date.now() - parseInt(cachedTimestamp, 10);
-        if (age < CACHE_DURATION_MS) {
-          const parsed = JSON.parse(cachedData) as CampusLocation[];
-          return parsed;
-        }
-      }
-    } catch (error) {
-      console.warn("Failed to read cache, fetching from API:", error);
+    const cached = await getFromCache<City[]>(cacheKey);
+    if (cached) {
+      console.log('[API] Cities loaded from cache');
+      return cached;
     }
   }
 
-  const response = await fetch(`${assertApiBaseUrl()}/api/locations`, {
-    method: "GET",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-  });
-
+  // Fetch from API
+  console.log('[API] Fetching cities from API');
+  const response = await fetch(`${assertApiBaseUrl()}/api/cities`);
+  
   if (!response.ok) {
-    throw new Error(`Failed to load locations: ${response.status}`);
+    throw new Error(`Failed to fetch cities: ${response.status}`);
   }
 
-  const data = (await response.json()) as LocationsApiResponse;
+  const data = await response.json();
+  const cities: City[] = data.cities || [];
 
-  if (!Array.isArray(data.locations)) {
-    throw new Error("Invalid API response for locations");
+  // Cache result
+  await setCache(cacheKey, cities);
+  return cities;
+}
+
+export async function getCityById(id: string): Promise<City> {
+  const response = await fetch(`${assertApiBaseUrl()}/api/cities/${id}`);
+  
+  if (!response.ok) {
+    throw new Error(`Failed to fetch city: ${response.status}`);
   }
 
-  const locations = data.locations.map(mapApiLocationToCampusLocation);
+  const data = await response.json();
+  return data.city;
+}
 
-  try {
-    await AsyncStorage.setItem(LOCATIONS_CACHE_KEY, JSON.stringify(locations));
-    await AsyncStorage.setItem(LOCATIONS_CACHE_TIMESTAMP_KEY, Date.now().toString());
-  } catch (error) {
-    console.warn("Failed to cache locations:", error);
+// BUILDINGS
+export async function getBuildingsByCity(cityId: string, forceRefresh = false): Promise<Building[]> {
+  const cacheKey = `@panorama_cache_buildings_${cityId}`;
+
+  // Try cache first
+  if (!forceRefresh) {
+    const cached = await getFromCache<Building[]>(cacheKey);
+    if (cached) {
+      console.log(`[API] Buildings for city ${cityId} loaded from cache`);
+      return cached;
+    }
   }
 
+  // Fetch from API
+  console.log(`[API] Fetching buildings for city ${cityId}`);
+  const response = await fetch(`${assertApiBaseUrl()}/api/cities/${cityId}/buildings`);
+  
+  if (!response.ok) {
+    throw new Error(`Failed to fetch buildings: ${response.status}`);
+  }
+
+  const data = await response.json();
+  const buildings: Building[] = data.buildings || [];
+
+  // Cache result
+  await setCache(cacheKey, buildings);
+  return buildings;
+}
+
+export async function getBuildingById(id: string): Promise<Building> {
+  const response = await fetch(`${assertApiBaseUrl()}/api/buildings/${id}`);
+  
+  if (!response.ok) {
+    throw new Error(`Failed to fetch building: ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data.building;
+}
+
+// LOCATIONS
+export async function getLocationsByBuilding(buildingId: string, forceRefresh = false): Promise<Location[]> {
+  const cacheKey = `@panorama_cache_locations_${buildingId}`;
+
+  // Try cache first
+  if (!forceRefresh) {
+    const cached = await getFromCache<Location[]>(cacheKey);
+    if (cached) {
+      console.log(`[API] Locations for building ${buildingId} loaded from cache`);
+      return cached;
+    }
+  }
+
+  // Fetch from API
+  console.log(`[API] Fetching locations for building ${buildingId}`);
+  const response = await fetch(`${assertApiBaseUrl()}/api/buildings/${buildingId}/locations`);
+  
+  if (!response.ok) {
+    throw new Error(`Failed to fetch locations: ${response.status}`);
+  }
+
+  const data = await response.json();
+  const locations: Location[] = data.locations || [];
+
+  // Cache result
+  await setCache(cacheKey, locations);
   return locations;
 }
 
-export async function fetchLocationById(locationId: string): Promise<CampusLocation> {
-  const response = await fetch(`${assertApiBaseUrl()}/api/locations/${locationId}`, {
-    method: "GET",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-  });
-
+export async function getLocationById(id: string): Promise<Location> {
+  const response = await fetch(`${assertApiBaseUrl()}/api/locations/${id}`);
+  
   if (!response.ok) {
-    throw new Error(`Failed to load location: ${response.status}`);
+    throw new Error(`Failed to fetch location: ${response.status}`);
   }
 
-  const data = (await response.json()) as { location: ApiLocationItem };
-
-  return mapApiLocationToCampusLocation(data.location);
+  const data = await response.json();
+  return data.location;
 }
 
-export async function loginWithEmailPassword(
-  email: string,
-  password: string
-): Promise<AuthResponse> {
-  const response = await fetch(`${assertApiBaseUrl()}/api/auth/login`, {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ email, password }),
-  });
+// PANORAMAS
+export async function getPanoramasByLocation(locationId: string, forceRefresh = false): Promise<Panorama[]> {
+  const cacheKey = `@panorama_cache_panoramas_${locationId}`;
 
-  if (!response.ok) {
-    const errorData = (await response.json().catch(() => ({}))) as { message?: string };
-    throw new Error(errorData.message || `Login failed: ${response.status}`);
-  }
-
-  const data = (await response.json()) as AuthResponse;
-
-  await saveTokens(data.tokens.accessToken, data.tokens.refreshToken);
-
-  return data;
-}
-
-export async function registerWithEmailPassword(
-  email: string,
-  password: string,
-  role?: "student" | "admin"
-): Promise<AuthResponse> {
-  const response = await fetch(`${assertApiBaseUrl()}/api/auth/register`, {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ email, password, role }),
-  });
-
-  if (!response.ok) {
-    const errorData = (await response.json().catch(() => ({}))) as { message?: string };
-    throw new Error(errorData.message || `Registration failed: ${response.status}`);
-  }
-
-  const data = (await response.json()) as AuthResponse;
-
-  await saveTokens(data.tokens.accessToken, data.tokens.refreshToken);
-
-  return data;
-}
-
-export async function getCurrentUser(): Promise<MeResponse | null> {
-  const token = await getAccessToken();
-
-  if (!token) {
-    return null;
-  }
-
-  try {
-    const response = await fetch(`${assertApiBaseUrl()}/api/auth/me`, {
-      method: "GET",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      return null;
+  // Try cache first
+  if (!forceRefresh) {
+    const cached = await getFromCache<Panorama[]>(cacheKey);
+    if (cached) {
+      console.log(`[API] Panoramas for location ${locationId} loaded from cache`);
+      return cached;
     }
-
-    return (await response.json()) as MeResponse;
-  } catch (error) {
-    console.error("Failed to get current user:", error);
-    return null;
   }
+
+  // Fetch from API
+  console.log(`[API] Fetching panoramas for location ${locationId}`);
+  const response = await fetch(`${assertApiBaseUrl()}/api/locations/${locationId}/panoramas`);
+  
+  if (!response.ok) {
+    throw new Error(`Failed to fetch panoramas: ${response.status}`);
+  }
+
+  const data = await response.json();
+  const panoramas: Panorama[] = data.panoramas || [];
+
+  // Cache result
+  await setCache(cacheKey, panoramas);
+  return panoramas;
 }
 
-export async function logoutUser(): Promise<void> {
-  await clearTokens();
+// ==================== NETWORK & OFFLINE HELPERS ====================
+
+export async function checkInternetConnection(): Promise<boolean> {
+  const state = await NetInfo.fetch();
+  return state.isConnected ?? false;
+}
+
+export async function fetchWithOfflineFallback<T>(
+  fetchFn: () => Promise<T>,
+  cacheKey: string
+): Promise<{ data: T; isOffline: boolean }> {
+  const isConnected = await checkInternetConnection();
+
+  if (isConnected) {
+    try {
+      const data = await fetchFn();
+      return { data, isOffline: false };
+    } catch (error) {
+      console.error('[API] Online fetch failed, trying cache:', error);
+      // Fall back to cache
+    }
+  }
+
+  // Try cache
+  const cached = await getFromCache<T>(cacheKey);
+  if (cached) {
+    console.log('[API] Using cached data (offline or error)');
+    return { data: cached, isOffline: true };
+  }
+
+  throw new Error('Нет подключения к интернету и данные не найдены в кэше');
+}
+
+// ==================== CLEAR CACHE ====================
+
+export async function clearAllCache(): Promise<void> {
+  try {
+    const keys = await AsyncStorage.getAllKeys();
+    const panoramaKeys = keys.filter(key => key.startsWith('@panorama_cache_'));
+    await AsyncStorage.multiRemove(panoramaKeys);
+    console.log('[Cache] All cache cleared');
+  } catch (error) {
+    console.error('[Cache] Failed to clear cache:', error);
+  }
 }

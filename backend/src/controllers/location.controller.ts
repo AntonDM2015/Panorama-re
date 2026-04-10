@@ -5,27 +5,27 @@ const locationService = new LocationService();
 
 export class LocationController {
   // GET /api/locations
-  async getAll(req: Request, res: Response, next: NextFunction) {
+  getAll = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const locations = await locationService.getAllLocations();
       res.json({ locations });
     } catch (error) {
       next(error);
     }
-  }
+  };
 
   // GET /api/buildings/:buildingId/locations
-  async getByBuilding(req: Request, res: Response, next: NextFunction) {
+  getByBuilding = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const locations = await locationService.getLocationsByBuilding(req.params.buildingId);
       res.json({ locations });
     } catch (error) {
       next(error);
     }
-  }
+  };
 
   // GET /api/locations/:id
-  async getById(req: Request, res: Response, next: NextFunction) {
+  getById = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const location = await locationService.getLocationById(req.params.id);
       if (!location) {
@@ -35,10 +35,10 @@ export class LocationController {
     } catch (error) {
       next(error);
     }
-  }
+  };
 
   // POST /api/locations (admin only)
-  async create(req: Request, res: Response, next: NextFunction) {
+  create = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { buildingId, name, description, floor, type, roomNumber, previewUrl, panoramaUrl } = req.body;
       if (!buildingId || !name) {
@@ -58,10 +58,10 @@ export class LocationController {
     } catch (error) {
       next(error);
     }
-  }
+  };
 
   // PUT /api/locations/:id (admin only)
-  async update(req: Request, res: Response, next: NextFunction) {
+  update = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { name, description, floor, type, roomNumber, previewUrl, panoramaUrl } = req.body;
       const location = await locationService.updateLocation(req.params.id, {
@@ -77,30 +77,40 @@ export class LocationController {
     } catch (error) {
       next(error);
     }
-  }
+  };
 
   // DELETE /api/locations/:id (admin only)
-  async delete(req: Request, res: Response, next: NextFunction) {
+  delete = async (req: Request, res: Response, next: NextFunction) => {
     try {
       await locationService.deleteLocation(req.params.id);
       res.json({ message: 'Локация удалена' });
     } catch (error) {
       next(error);
     }
-  }
+  };
+
+  // GET /api/panoramas
+  getAllPanoramas = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const panoramas = await locationService.getAllPanoramas();
+      res.json({ panoramas });
+    } catch (error) {
+      next(error);
+    }
+  };
 
   // GET /api/locations/:locationId/panoramas
-  async getPanoramas(req: Request, res: Response, next: NextFunction) {
+  getPanoramas = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const panoramas = await locationService.getLocationPanoramas(req.params.locationId);
       res.json({ panoramas });
     } catch (error) {
       next(error);
     }
-  }
+  };
 
   // POST /api/locations/:locationId/panoramas (admin only)
-  async createPanorama(req: Request, res: Response, next: NextFunction) {
+  createPanorama = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { url, title, sortOrder } = req.body;
       if (!url) {
@@ -116,10 +126,10 @@ export class LocationController {
     } catch (error) {
       next(error);
     }
-  }
+  };
 
   // PUT /api/panoramas/:id (admin only)
-  async updatePanorama(req: Request, res: Response, next: NextFunction) {
+  updatePanorama = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { url, title, sortOrder } = req.body;
       const panorama = await locationService.updatePanorama(req.params.id, {
@@ -131,53 +141,53 @@ export class LocationController {
     } catch (error) {
       next(error);
     }
-  }
+  };
 
   // DELETE /api/panoramas/:id (admin only)
-  async deletePanorama(req: Request, res: Response, next: NextFunction) {
+  deletePanorama = async (req: Request, res: Response, next: NextFunction) => {
     try {
       await locationService.deletePanorama(req.params.id);
       res.json({ message: 'Панорама удалена' });
     } catch (error) {
       next(error);
     }
-  }
+  };
 
-  // GET /api/locations/:locationId/navigation-links
-  async getNavigationLinks(req: Request, res: Response, next: NextFunction) {
+  // GET /api/panoramas/:panoramaId/links
+  getPanoramaLinks = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const links = await locationService.getLocationNavigationLinks(req.params.locationId);
+      const links = await locationService.getPanoramaLinks(req.params.panoramaId);
       res.json({ links });
     } catch (error) {
       next(error);
     }
-  }
+  };
 
-  // POST /api/locations/:locationId/navigation-links (admin only)
-  async createNavigationLink(req: Request, res: Response, next: NextFunction) {
+  // POST /api/panoramas/:panoramaId/links (admin only)
+  createPanoramaLink = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { toLocationId, direction } = req.body;
-      if (!toLocationId) {
-        return res.status(400).json({ message: 'toLocationId обязателен' });
+      const { toPanoramaId, direction } = req.body;
+      if (!toPanoramaId) {
+        return res.status(400).json({ message: 'toPanoramaId обязателен' });
       }
-      const link = await locationService.createNavigationLink({
-        fromLocationId: req.params.locationId,
-        toLocationId,
+      const link = await locationService.createPanoramaLink({
+        fromPanoramaId: req.params.panoramaId,
+        toPanoramaId,
         direction,
       });
       res.status(201).json({ link });
     } catch (error) {
       next(error);
     }
-  }
+  };
 
-  // DELETE /api/navigation-links/:id (admin only)
-  async deleteNavigationLink(req: Request, res: Response, next: NextFunction) {
+  // DELETE /api/panorama-links/:id (admin only)
+  deletePanoramaLink = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await locationService.deleteNavigationLink(req.params.id);
+      await locationService.deletePanoramaLink(req.params.id);
       res.json({ message: 'Связь удалена' });
     } catch (error) {
       next(error);
     }
-  }
+  };
 }

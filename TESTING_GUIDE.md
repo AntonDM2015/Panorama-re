@@ -1,102 +1,102 @@
-# Testing Guide for Current Implementation
+# Руководство по тестированию текущей реализации
 
-## ⚠️ PREREQUISITE: Run Database Migration
+## ⚠️ ОБЯЗАТЕЛЬНО: Запустите миграцию базы данных
 
-Before testing, you **MUST** run the navigation links migration in Supabase:
+Перед тестированием вы **ДОЛЖНЫ** запустить миграцию навигационных ссылок в Supabase:
 
-1. Open Supabase Dashboard
-2. Go to SQL Editor
-3. Copy and run the entire contents of: `backend/migrate_navigation_links.sql`
-4. Verify the table was created: `SELECT * FROM navigation_links;` (should return empty table)
-
----
-
-## ✅ TEST CHECKLIST
-
-### 1. Building Page - Accordion Behavior
-
-#### Test Steps:
-1. Open http://localhost:5173
-2. Navigate to a city → building
-3. **Expected behavior:**
-   - ✅ See "🧭 Свободное перемещение" button in header
-   - ✅ Click location card → expands to show panorama inline
-   - ✅ Click same card again → collapses
-   - ✅ Click different card → previous collapses, new expands
-   - ✅ No page navigation (stays on same URL)
-
-#### Issues to Report:
-- [ ] Accordion doesn't expand
-- [ ] Multiple accordions open at once
-- [ ] Panorama doesn't load
-- [ ] UI glitches during animation
+1. Откройте панель управления Supabase
+2. Перейдите в SQL Editor
+3. Скопируйте и запустите все содержимое файла: `backend/migrate_navigation_links.sql`
+4. Проверьте, что таблица создана: `SELECT * FROM navigation_links;` (должна вернуть пустую таблицу)
 
 ---
 
-### 2. Panorama Display
+## ✅ КОНТРОЛЬНЫЙ СПИСОК ТЕСТИРОВАНИЯ
 
-#### Desktop Tests:
-1. Expand a location with panorama
-2. **Check:**
-   - [ ] No stretching/distortion
-   - [ ] Aspect ratio is correct (16:9 or similar)
-   - [ ] Can drag to rotate with mouse
-   - [ ] Mouse wheel zooms in/out
-   - [ ] Min/max zoom limits work
+### 1. Страница здания — Поведение аккордеона
 
-#### Mobile Tests (use browser dev tools):
-1. Switch to mobile view (iPhone/Android)
-2. **Check:**
-   - [ ] Panorama fills width properly
-   - [ ] Touch swipe rotates view
-   - [ ] Pinch zoom works
-   - [ ] No overflow issues
+#### Шаги теста:
+1. Откройте http://localhost:5173
+2. Перейдите в: город → здание
+3. **Ожидаемое поведение:**
+   - ✅ Видна кнопка "🧭 Свободное перемещение" в заголовке
+   - ✅ Клик по карточке локации → раскрывается, показывая панораму внутри
+   - ✅ Клик по той же карточке еще раз → сворачивается
+   - ✅ Клик по другой карточке → предыдущая сворачивается, новая раскрывается
+   - ✅ Нет перезагрузки страницы (остается на том же URL)
 
----
-
-### 3. Street View Mode
-
-#### Test Steps:
-1. On building page, click "🧭 Свободное перемещение"
-2. **Expected:**
-   - [ ] Opens fullscreen overlay
-   - [ ] Shows location name at top
-   - [ ] Panorama loads and is interactive
-   - [ ] Press ESC → closes overlay
-
-#### Navigation Test:
-1. First, add navigation links in Supabase (see below)
-2. Click "🧭 Свободное перемещение"
-3. Click navigation button at bottom
-4. **Expected:**
-   - [ ] Smooth fade transition
-   - [ ] New panorama loads
-   - [ ] Location name updates
-   - [ ] No flickering
+#### Проблемы, о которых стоит сообщить:
+- [ ] Аккордеон не раскрывается
+- [ ] Открыто несколько аккордеонов одновременно
+- [ ] Панорама не загружается
+- [ ] Глюки интерфейса во время анимации
 
 ---
 
-### 4. Navigation Graph (Backend)
+### 2. Отображение панорамы
 
-#### Setup Test Data:
-Run in Supabase SQL Editor:
+#### Тесты на десктопе:
+1. Раскройте локацию с панорамой
+2. **Проверьте:**
+   - [ ] Нет растяжений/искажений
+   - [ ] Соотношение сторон правильное (16:9 или похожее)
+   - [ ] Можно вращать панораму мышью
+   - [ ] Колесико мыши работает для зума (приближение/удаление)
+   - [ ] Лимиты минимального/максимального зума работают
+
+#### Тесты на мобильных устройствах (используйте инструменты разработчика):
+1. Переключитесь в мобильный вид (iPhone/Android)
+2. **Проверьте:**
+   - [ ] Панорама правильно заполняет ширину
+   - [ ] Свайп вращает вид
+   - [ ] Зум щипком (pinch zoom) работает
+   - [ ] Нет проблем с выходом элементов за границы экрана
+
+---
+
+### 3. Режим Street View
+
+#### Шаги теста:
+1. На странице здания нажмите "🧭 Свободное перемещение"
+2. **Ожидается:**
+   - [ ] Открывается полноэкранный оверлей
+   - [ ] Название локации отображается сверху
+   - [ ] Панорама загружается и интерактивна
+   - [ ] Нажатие ESC → закрывает оверлей
+
+#### Тест навигации:
+1. Сначала добавьте навигационные ссылки в Supabase (см. ниже)
+2. Нажмите "🧭 Свободное перемещение"
+3. Нажмите на кнопку навигации внизу
+4. **Ожидается:**
+   - [ ] Плавный переход с затуханием (fade transition)
+   - [ ] Загружается новая панорама
+   - [ ] Название локации обновляется
+   - [ ] Нет мерцания
+
+---
+
+### 4. Граф навигации (Бэкенд)
+
+#### Настройка тестовых данных:
+Запустите в Supabase SQL Editor:
 ```sql
--- Get location IDs
+-- Получите ID локаций
 SELECT id, name FROM locations;
 
--- Add navigation links (replace IDs with actual ones)
+-- Добавьте навигационные ссылки (замените ID на реальные)
 INSERT INTO navigation_links (from_location_id, to_location_id, direction) VALUES
-  ('LOCATION_ID_1', 'LOCATION_ID_2', 'forward'),
-  ('LOCATION_ID_2', 'LOCATION_ID_1', 'back');
+  ('ID_ЛОКАЦИИ_1', 'ID_ЛОКАЦИИ_2', 'forward'),
+  ('ID_ЛОКАЦИИ_2', 'ID_ЛОКАЦИИ_1', 'back');
 ```
 
-#### Test API:
+#### Тестирование API:
 ```bash
-# Test navigation links endpoint
-curl http://localhost:5000/api/locations/LOCATION_ID_1/navigation-links
+# Тест эндпоинта навигационных ссылок
+curl http://localhost:5000/api/locations/ID_ЛОКАЦИИ_1/navigation-links
 ```
 
-**Expected response:**
+**Ожидаемый ответ:**
 ```json
 {
   "navigationLinks": [
@@ -112,117 +112,117 @@ curl http://localhost:5000/api/locations/LOCATION_ID_1/navigation-links
 
 ---
 
-### 5. Responsiveness
+### 5. Адаптивность
 
-#### Breakpoints to Test:
-- [ ] **Mobile (< 768px)**: Single column, touch-friendly buttons
-- [ ] **Tablet (768px - 1024px)**: Adjusted spacing
-- [ ] **Desktop (> 1024px)**: Full layout, hover effects
+#### Брейкпоинты для теста:
+- [ ] **Мобильные (< 768px)**: Одна колонка, удобные для касания кнопки
+- [ ] **Планшеты (768px - 1024px)**: Отрегулированные отступы
+- [ ] **Десктопы (> 1024px)**: Полный макет, эффекты при наведении
 
-#### Mobile-Specific:
-- [ ] Back button works
-- [ ] Tabs are accessible
-- [ ] Search input works
-- [ ] Accordion expands fully
-- [ ] Street View button visible
-- [ ] Panorama is usable
+#### Специфика для мобильных:
+- [ ] Кнопка "Назад" работает
+- [ ] Вкладки доступны
+- [ ] Поиск работает
+- [ ] Аккордеон раскрывается полностью
+- [ ] Кнопка Street View видна
+- [ ] Панорама удобна в использовании
 
-#### Desktop-Specific:
-- [ ] Hover effects on cards
-- [ ] Keyboard navigation (Tab, Enter, ESC)
-- [ ] Mouse interactions smooth
-- [ ] No cursor issues
-
----
-
-## 🐛 KNOWN ISSUES TO CHECK
-
-### Issue 1: Navigation Links 500 Error
-**Symptom:** `GET /api/locations/:id/navigation-links` returns 500
-
-**Possible Causes:**
-1. Migration not run (navigation_links table doesn't exist)
-2. Foreign key constraint error
-3. Service/repository not properly connected
-
-**How to Fix:**
-1. Run `backend/migrate_navigation_links.sql` in Supabase
-2. Check backend terminal for error details
-3. Verify navigation repository is imported correctly
+#### Специфика для десктопов:
+- [ ] Эффекты наведения на карточках
+- [ ] Навигация с клавиатуры (Tab, Enter, ESC)
+- [ ] Взаимодействие с мышью плавное
+- [ ] Нет проблем с курсором
 
 ---
 
-### Issue 2: Panorama Not Loading
-**Symptom:** "Панорама ещё не добавлена" message
+## 🐛 ИЗВЕСТНЫЕ ПРОБЛЕМЫ
 
-**Check:**
-1. Does location have `panoramaUrl` set?
-2. Does location have entries in `panoramas` table?
-3. Is the image URL valid?
+### Проблема 1: Ошибка 500 при запросе ссылок
+**Симптом:** `GET /api/locations/:id/navigation-links` возвращает 500
 
-**Fix:**
-Add panorama URL via admin panel or SQL:
+**Возможные причины:**
+1. Миграция не запущена (таблица navigation_links не существует)
+2. Ошибка ограничения внешнего ключа (foreign key)
+3. Сервис/репозиторий неправильно подключен
+
+**Как исправить:**
+1. Запустите `backend/migrate_navigation_links.sql` в Supabase
+2. Проверьте терминал бэкенда на наличие деталей ошибки
+3. Убедитесь, что навигационный репозиторий импортирован правильно
+
+---
+
+### Проблема 2: Панорама не загружается
+**Симптом:** Сообщение "Панорама ещё не добавлена"
+
+**Проверка:**
+1. Установлен ли `panoramaUrl` для локации?
+2. Есть ли записи в таблице `panoramas` для этой локации?
+3. Является ли URL изображения валидным?
+
+**Исправление:**
+Добавьте URL панорамы через админ-панель или SQL:
 ```sql
-UPDATE locations SET panorama_url = 'YOUR_IMAGE_URL' WHERE id = 'LOCATION_ID';
+UPDATE locations SET panorama_url = 'ВАШ_URL_ИЗОБРАЖЕНИЯ' WHERE id = 'ID_ЛОКАЦИИ';
 ```
 
 ---
 
-### Issue 3: Street View Not Opening
-**Symptom:** Button does nothing or crashes
+### Проблема 3: Street View не открывается
+**Симптом:** Кнопка ничего не делает или происходит сбой
 
-**Check:**
-1. Console for JavaScript errors
-2. Verify StreetViewMode component is imported
-3. Check if locations array is empty
-
----
-
-## 📊 Test Results Template
-
-Copy and fill this out after testing:
-
-```
-BUILDING PAGE:
-- Accordion works: YES/NO
-- Issues: [describe]
-
-PANORAMA DISPLAY:
-- No stretching: YES/NO
-- Desktop works: YES/NO
-- Mobile works: YES/NO
-- Issues: [describe]
-
-STREET VIEW MODE:
-- Opens correctly: YES/NO
-- Navigation works: YES/NO
-- Smooth transitions: YES/NO
-- Issues: [describe]
-
-NAVIGATION GRAPH:
-- API endpoint works: YES/NO
-- Links can be created: YES/NO
-- Links load in frontend: YES/NO
-- Issues: [describe]
-
-RESPONSIVENESS:
-- Mobile (< 768px): PASS/FAIL
-- Tablet (768-1024px): PASS/FAIL
-- Desktop (> 1024px): PASS/FAIL
-- Issues: [describe]
-
-OVERALL STATUS: STABLE / NEEDS FIXES
-```
+**Проверка:**
+1. Консоль на наличие ошибок JavaScript
+2. Убедитесь, что компонент StreetViewMode импортирован
+3. Проверьте, не пуст ли массив локаций
 
 ---
 
-## 🚦 Next Steps Based on Results
+## 📊 Шаблон результатов тестирования
 
-**If ALL tests pass:**
-→ Proceed with Phase 1.5 (Admin panel navigation UI)
-→ Proceed with Phase 3 (Panorama hotspots)
+Скопируйте и заполните после тестирования:
 
-**If ANY critical tests fail:**
-→ Fix issues first
-→ Re-test
-→ Then continue
+```
+СТРАНИЦА ЗДАНИЯ:
+- Аккордеон работает: ДА/НЕТ
+- Проблемы: [опишите]
+
+ОТОБРАЖЕНИЕ ПАНОРАМЫ:
+- Нет искажений: ДА/НЕТ
+- На десктопе работает: ДА/НЕТ
+- На мобильных работает: ДА/НЕТ
+- Проблемы: [опишите]
+
+РЕЖИМ STREET VIEW:
+- Открывается корректно: ДА/НЕТ
+- Навигация работает: ДА/НЕТ
+- Плавные переходы: ДА/НЕТ
+- Проблемы: [опишите]
+
+ГРАФ НАВИГАЦИИ:
+- API эндпоинт работает: ДА/НЕТ
+- Ссылки создаются: ДА/НЕТ
+- Ссылки загружаются на фронтенде: ДА/НЕТ
+- Проблемы: [опишите]
+
+АДАПТИВНОСТЬ:
+- Мобильные (< 768px): ПРОЙДЕНО/ОШИБКА
+- Планшеты (768-1024px): ПРОЙДЕНО/ОШИБКА
+- Десктопы (> 1024px): ПРОЙДЕНО/ОШИБКА
+- Проблемы: [опишите]
+
+ОБЩИЙ СТАТУС: СТАБИЛЬНО / ТРЕБУЕТ ИСПРАВЛЕНИЙ
+```
+
+---
+
+## 🚦 Следующие шаги в зависимости от результатов
+
+**Если ВСЕ тесты пройдены:**
+→ Перейти к Фазе 1.5 (Интерфейс навигации в админ-панели)
+→ Перейти к Фазе 3 (Хотспоты на панораме)
+
+**Если ЛЮБЫЕ критические тесты провалены:**
+→ Сначала исправить проблемы
+→ Повторить тестирование
+→ Затем продолжить разработку

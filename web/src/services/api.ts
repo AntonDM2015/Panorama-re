@@ -1,5 +1,5 @@
-import axios from 'axios';
-import { City, Building, Location, PanoramaImage, NavigationLink } from '../types';
+import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
+import { City, Building, Location, PanoramaImage, PanoramaLink } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
@@ -10,17 +10,122 @@ const api = axios.create({
   },
 });
 
+// Flag to prevent multiple refresh requests
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (value?: any) => void;
+  reject: (reason?: any) => void;
+}> = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach(prom => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
+// Refresh access token using refresh token
+const refreshAccessToken = async (): Promise<string | null> => {
+  try {
+    const refreshToken = localStorage.getItem('refreshToken');
+    if (!refreshToken) {
+      console.error('[API] No refresh token available');
+      return null;
+    }
+
+    console.log('[API] Refreshing access token...');
+    const response = await axios.post(`${API_BASE_URL}/api/auth/refresh`, {
+      refreshToken
+    });
+
+    const { accessToken, refreshToken: newRefreshToken } = response.data.tokens;
+    
+    // Save both tokens
+    localStorage.setItem('accessToken', accessToken);
+    if (newRefreshToken) {
+      localStorage.setItem('refreshToken', newRefreshToken);
+    }
+
+    console.log('[API] Access token refreshed successfully');
+    return accessToken;
+  } catch (error) {
+    console.error('[API] Failed to refresh token:', error);
+    // Clear tokens on refresh failure
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    return null;
+  }
+};
+
 // Add auth token to requests if available
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('auth_token');
+api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+  const token = localStorage.getItem('accessToken');
   if (token) {
-    console.log('[API] Adding auth token to request:', config.url);
     config.headers.Authorization = `Bearer ${token}`;
-  } else {
-    console.warn('[API] No auth token found for request:', config.url);
   }
   return config;
 });
+
+// Response interceptor for handling 401 errors
+api.interceptors.response.use(
+  (response) => response,
+  async (error: AxiosError) => {
+    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+
+    // If error is 401 and we haven't retried yet
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      if (isRefreshing) {
+        // If already refreshing, queue this request
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            return api(originalRequest);
+          })
+          .catch((err) => {
+            return Promise.reject(err);
+          });
+      }
+
+      isRefreshing = true;
+
+      try {
+        const newToken = await refreshAccessToken();
+        
+        if (newToken) {
+          // Process queued requests
+          processQueue(null, newToken);
+          
+          // Retry original request with new token
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          return api(originalRequest);
+        } else {
+          // Refresh failed, redirect to login
+          processQueue(error, null);
+          console.error('[API] Token refresh failed, redirecting to login');
+          window.location.href = '/admin';
+          return Promise.reject(error);
+        }
+      } catch (refreshError) {
+        processQueue(refreshError, null);
+        console.error('[API] Token refresh error, redirecting to login');
+        window.location.href = '/admin';
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
 
 // ==================== CITIES ====================
 
@@ -255,7 +360,7 @@ export const updatePanorama = async (id: string, data: {
   sortOrder?: number;
 }): Promise<PanoramaImage> => {
   try {
-    const response = await api.put(`/api/panoramas/${id}`, data);
+    const response = await api.put(`/api/locations/panoramas/${id}`, data);
     return response.data.panorama;
   } catch (error) {
     console.error(`[API] Error updating panorama ${id}:`, error);
@@ -265,16 +370,26 @@ export const updatePanorama = async (id: string, data: {
 
 export const deletePanorama = async (id: string): Promise<void> => {
   try {
-    await api.delete(`/api/panoramas/${id}`);
+    await api.delete(`/api/locations/panoramas/${id}`);
   } catch (error) {
     console.error(`[API] Error deleting panorama ${id}:`, error);
     throw error;
   }
 };
 
+export const getAllPanoramas = async (): Promise<PanoramaImage[]> => {
+  try {
+    const response = await api.get('/api/locations/panoramas');
+    return response.data.panoramas || [];
+  } catch (error) {
+    console.error('[API] Error fetching all panoramas:', error);
+    throw error;
+  }
+};
+
 // ==================== AUTH ====================
 
-export const login = async (email: string, password: string): Promise<{ token: string; user: any }> => {
+export const login = async (email: string, password: string): Promise<{ tokens: { accessToken: string; refreshToken: string }; user: any }> => {
   try {
     const response = await api.post('/api/auth/login', { email, password });
     return response.data;
@@ -285,47 +400,57 @@ export const login = async (email: string, password: string): Promise<{ token: s
 };
 
 export const logout = (): void => {
-  localStorage.removeItem('auth_token');
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('refreshToken');
 };
 
-export const getAuthToken = (): string | null => {
-  return localStorage.getItem('auth_token');
+export const getAccessToken = (): string | null => {
+  return localStorage.getItem('accessToken');
 };
 
-export const setAuthToken = (token: string): void => {
-  localStorage.setItem('auth_token', token);
+export const getRefreshToken = (): string | null => {
+  return localStorage.getItem('refreshToken');
 };
 
-// ==================== NAVIGATION LINKS ====================
+export const setTokens = (accessToken: string, refreshToken: string): void => {
+  localStorage.setItem('accessToken', accessToken);
+  localStorage.setItem('refreshToken', refreshToken);
+};
 
-export const getNavigationLinks = async (locationId: string): Promise<NavigationLink[]> => {
+export const isAuthenticated = (): boolean => {
+  return !!localStorage.getItem('accessToken');
+};
+
+// ==================== PANORAMA LINKS ====================
+
+export const getPanoramaLinks = async (panoramaId: string): Promise<PanoramaLink[]> => {
   try {
-    const response = await api.get(`/api/locations/${locationId}/navigation-links`);
-    return response.data.links || response.data.navigationLinks || [];
+    const response = await api.get(`/api/locations/panoramas/${panoramaId}/links`);
+    return response.data.links || [];
   } catch (error) {
-    console.error(`[API] Error fetching navigation links for location ${locationId}:`, error);
+    console.error(`[API] Error fetching panorama links for ${panoramaId}:`, error);
     throw error;
   }
 };
 
-export const createNavigationLink = async (locationId: string, data: {
-  toLocationId: string;
+export const createPanoramaLink = async (panoramaId: string, data: {
+  toPanoramaId: string;
   direction?: string;
-}): Promise<NavigationLink> => {
+}): Promise<PanoramaLink> => {
   try {
-    const response = await api.post(`/api/locations/${locationId}/navigation-links`, data);
+    const response = await api.post(`/api/locations/panoramas/${panoramaId}/links`, data);
     return response.data.link;
   } catch (error) {
-    console.error(`[API] Error creating navigation link:`, error);
+    console.error(`[API] Error creating panorama link:`, error);
     throw error;
   }
 };
 
-export const deleteNavigationLink = async (id: string): Promise<void> => {
+export const deletePanoramaLink = async (id: string): Promise<void> => {
   try {
-    await api.delete(`/api/navigation-links/${id}`);
+    await api.delete(`/api/locations/panorama-links/${id}`);
   } catch (error) {
-    console.error(`[API] Error deleting navigation link:`, error);
+    console.error(`[API] Error deleting panorama link:`, error);
     throw error;
   }
 };

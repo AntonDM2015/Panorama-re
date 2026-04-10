@@ -5,26 +5,29 @@ import { requireAuth, requireAdmin } from '../middleware/auth.middleware';
 const router = Router();
 const locationController = new LocationController();
 
+// Global Panorama route
+router.get('/panoramas', locationController.getAllPanoramas);
+
 // Public routes
-router.get('/', locationController.getAll.bind(locationController));
-router.get('/:id', locationController.getById.bind(locationController));
+router.get('/', locationController.getAll);
+router.get('/:id', locationController.getById);
 
 // Panorama routes
-router.get('/:locationId/panoramas', locationController.getPanoramas.bind(locationController));
+router.get('/:locationId/panoramas', locationController.getPanoramas);
 
 // Admin routes
-router.post('/', requireAuth, requireAdmin, locationController.create.bind(locationController));
-router.put('/:id', requireAuth, requireAdmin, locationController.update.bind(locationController));
-router.delete('/:id', requireAuth, requireAdmin, locationController.delete.bind(locationController));
+router.post('/', requireAuth, requireAdmin, locationController.create);
+router.put('/:id', requireAuth, requireAdmin, locationController.update);
+router.delete('/:id', requireAuth, requireAdmin, locationController.delete);
 
 // Panorama admin routes
-router.post('/:locationId/panoramas', requireAuth, requireAdmin, locationController.createPanorama.bind(locationController));
-router.put('/panoramas/:id', requireAuth, requireAdmin, locationController.updatePanorama.bind(locationController));
-router.delete('/panoramas/:id', requireAuth, requireAdmin, locationController.deletePanorama.bind(locationController));
+router.post('/:locationId/panoramas', requireAuth, requireAdmin, locationController.createPanorama);
+router.put('/panoramas/:id', requireAuth, requireAdmin, locationController.updatePanorama);
+router.delete('/panoramas/:id', requireAuth, requireAdmin, locationController.deletePanorama);
 
-// Navigation links routes
-router.get('/:locationId/navigation-links', locationController.getNavigationLinks.bind(locationController));
-router.post('/:locationId/navigation-links', requireAuth, requireAdmin, locationController.createNavigationLink.bind(locationController));
-router.delete('/navigation-links/:id', requireAuth, requireAdmin, locationController.deleteNavigationLink.bind(locationController));
+// Panorama links routes
+router.get('/panoramas/:panoramaId/links', locationController.getPanoramaLinks);
+router.post('/panoramas/:panoramaId/links', requireAuth, requireAdmin, locationController.createPanoramaLink);
+router.delete('/panorama-links/:id', requireAuth, requireAdmin, locationController.deletePanoramaLink);
 
 export default router;

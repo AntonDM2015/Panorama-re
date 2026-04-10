@@ -1,139 +1,139 @@
-# 🧭 How to Add Navigation Links for Street View Mode
+# 🧭 Как добавить навигационные ссылки для режима Street View
 
-## Problem
-Navigation arrows (hotspots) are not showing in Street View mode because **no navigation links exist in the database yet**.
+## Проблема
+Стрелки навигации (хотспоты) не отображаются в режиме Street View, так как **в базе данных еще нет навигационных ссылок**.
 
-## Solution: Add Navigation Links via Admin Panel
+## Решение: Добавление ссылок через панель администратора
 
-### Step 1: Open Admin Panel
-1. Go to http://localhost:5174
-2. Click **"Админ-панель"** in the footer
-3. Login with:
+### Шаг 1: Откройте панель администратора
+1. Перейдите по адресу http://localhost:5174
+2. Нажмите **"Админ-панель"** в футере
+3. Войдите, используя:
    - Email: `admin@example.com`
-   - Password: `admin123`
+   - Пароль: `admin123`
 
-### Step 2: Add a Second Location
-You need at least **2 locations** to create navigation links between them.
+### Шаг 2: Добавьте вторую локацию
+Вам нужно как минимум **2 локации**, чтобы создать навигационную связь между ними.
 
-1. Click on building **"Главный корпус Брянск"**
-2. Click **"Добавить локацию"**
-3. Fill in:
-   - Name: `Коридор 1 этажа`
-   - Type: `Локация`
-   - Floor: `1`
-4. Click **"Создать"**
+1. Нажмите на здание **"Главный корпус Брянск"**
+2. Нажмите **"Добавить локацию"**
+3. Заполните данные:
+   - Название: `Коридор 1 этажа`
+   - Тип: `Локация`
+   - Этаж: `1`
+4. Нажмите **"Создать"**
 
-### Step 3: Upload Panorama for New Location
-1. Click on the new location **"Коридор 1 этажа"**
-2. In the modal, scroll to **"Панорамы"**
-3. Click **"Добавить панораму"**
-4. Select a panorama image file
-5. Click **"Загрузить"**
+### Шаг 3: Загрузите панораму для новой локации
+1. Нажмите на новую локацию **"Коридор 1 этажа"**
+2. В модальном окне прокрутите до раздела **"Панорамы"**
+3. Нажмите **"Добавить панораму"**
+4. Выберите файл изображения панорамы
+5. Нажмите **"Загрузить"**
 
-### Step 4: Create Navigation Link
-Now link the two locations together:
+### Шаг 4: Создайте навигационную ссылку
+Теперь свяжите две локации:
 
-1. Open location **"Улица"** (the one with existing panoramas)
-2. Scroll to section **"Навигационные ссылки"** (green section)
-3. In dropdown, select: **"Коридор 1 этажа"**
-4. (Optional) Direction: `forward` or `north`
-5. Click **"Добавить ссылку"**
+1. Откройте локацию **"Улица"** (та, где уже есть панорамы)
+2. Прокрутите до раздела **"Навигационные ссылки"** (зеленый раздел)
+3. В выпадающем списке выберите: **"Коридор 1 этажа"**
+4. (Опционально) Направление (Direction): `forward` или `north`
+5. Нажмите **"Добавить ссылку"**
 
-✅ You should see the link appear in the list below!
+✅ Вы должны увидеть, что ссылка появилась в списке ниже!
 
-### Step 5: Create Reverse Link (Bidirectional)
-For navigation to work both ways:
+### Шаг 5: Создайте обратную ссылку (двусторонняя связь)
+Чтобы навигация работала в обе стороны:
 
-1. Open location **"Коридор 1 этажа"**
-2. Scroll to **"Навигационные ссылки"**
-3. Select: **"Улица"**
-4. Direction: `back` or `south`
-5. Click **"Добавить ссылку"**
+1. Откройте локацию **"Коридор 1 этажа"**
+2. Прокрутите до **"Навигационные ссылки"**
+3. Выберите: **"Улица"**
+4. Направление: `back` или `south`
+5. Нажмите **"Добавить ссылку"**
 
-### Step 6: Test Street View Mode
-1. Go back to building page
-2. Click **"🧭 Свободное перемещение"** button
-3. You should now see:
-   - ✅ Blue/green circular hotspot arrow on the panorama
-   - ✅ Pulse animation on the hotspot
-   - ✅ Tooltip showing target location name on hover
-   - ✅ Click hotspot to navigate to connected location
+### Шаг 6: Проверьте режим Street View
+1. Вернитесь на страницу здания
+2. Нажмите кнопку **"🧭 Свободное перемещение"**
+3. Теперь вы должны увидеть:
+   - ✅ Сине-зеленую круглую стрелку (хотспот) на панораме
+   - ✅ Анимацию пульсации на хотспоте
+   - ✅ Подсказку с названием целевой локации при наведении
+   - ✅ Кликните по хотспоту, чтобы перейти к связанной локации
 
-## What You Should See
+## Что вы должны увидеть
 
-### Hotspot Appearance
-- **Color**: Blue-green gradient (cyan → emerald)
-- **Size**: 50px diameter circle
-- **Arrow**: White ▲ (up arrow) in the center
-- **Animation**: Pulsing glow effect
-- **Hover**: Scales up 1.3x with brighter glow
+### Внешний вид хотспота
+- **Цвет**: Сине-зеленый градиент (циан → изумрудный)
+- **Размер**: Круг диаметром 50px
+- **Стрелка**: Белая ▲ (вверх) в центре
+- **Анимация**: Эффект пульсирующего свечения
+- **Наведение**: Масштабирование до 1.3x с более ярким свечением
 
-### Navigation Flow
+### Поток навигации
 ```
 [Улица] ←→ [Коридор 1 этажа]
    ▲            ▲
    │            │
- Hotspot      Hotspot
+ Хотспот      Хотспот
    │            │
- Click →      Click →
- Navigate     Navigate
+ Клик →       Клик →
+ Переход      Переход
 ```
 
-## Direction Options
+## Варианты направлений
 
-When adding navigation links, you can specify direction to position the hotspot:
+При добавлении ссылок можно указать направление для позиционирования хотспота:
 
-| Direction | Yaw (Degrees) | Arrow Position |
-|-----------|---------------|----------------|
-| `north` / `север` | 0° | Front |
-| `south` / `юг` | 180° | Back |
-| `east` / `восток` | 90° | Right |
-| `west` / `запад` | -90° | Left |
-| `forward` / `вперед` | 0° | Front |
-| `back` / `назад` | 180° | Back |
+| Направление | Угол (градусы) | Позиция стрелки |
+|-------------|----------------|-----------------|
+| `north` / `север` | 0° | Спереди |
+| `south` / `юг` | 180° | Сзади |
+| `east` / `восток` | 90° | Справа |
+| `west` / `запад` | -90° | Слева |
+| `forward` / `вперед` | 0° | Спереди |
+| `back` / `назад` | 180° | Сзади |
 
-**Note**: The arrow symbol is currently always ▲ (up). In future updates, it will rotate based on direction.
+**Примечание**: Символ стрелки в данный момент всегда ▲ (вверх). В будущих обновлениях он будет вращаться в зависимости от направления.
 
-## Troubleshooting
+## Устранение неполадок
 
-### No hotspots visible?
-1. Check browser console (F12) for logs:
+### Не видно хотспотов?
+1. Проверьте консоль браузера (F12) на наличие логов:
    ```
    [StreetView] Navigation links: 1
    [StreetView] Connected locations: 1
    ```
-2. If count is 0, navigation links weren't saved
-3. Try refreshing the page
+2. Если значение равно 0, навигационные ссылки не были сохранены
+3. Попробуйте обновить страницу
 
-### Hotspots visible but not clickable?
-1. Make sure you're in **Street View mode** (🧭 button)
-2. Hotspots only work in Street View, not in accordion view
-3. Check console for errors
+### Хотспоты видны, но не кликабельны?
+1. Убедитесь, что вы находитесь в **режиме Street View** (кнопка 🧭)
+2. Хотспоты работают только в Street View, но не в режиме аккордеона
+3. Проверьте консоль на наличие ошибок
 
-### Hotspot in wrong position?
-1. Edit the navigation link
-2. Change the direction value
-3. Save and refresh
+### Хотспот в неправильном месте?
+1. Отредактируйте навигационную ссылку
+2. Измените значение направления (direction)
+3. Сохраните и обновите страницу
 
-## Database Structure
+## Структура базы данных
 
-Navigation links are stored in `navigation_links` table:
+Навигационные ссылки хранятся в таблице `navigation_links`:
 ```sql
 CREATE TABLE navigation_links (
   id UUID PRIMARY KEY,
   from_location_id UUID REFERENCES locations(id),
   to_location_id UUID REFERENCES locations(id),
-  direction TEXT,  -- 'north', 'south', 'east', 'west', etc.
+  direction TEXT,  -- 'north', 'south', 'east', 'west' и т.д.
   created_at TIMESTAMP
 );
 ```
 
-Each link creates a **one-way connection**. For bidirectional navigation, create TWO links (A→B and B→A).
+Каждая ссылка создает **одностороннюю связь**. Для двусторонней навигации создайте ДВЕ ссылки (A→B и B→A).
 
-## Next Steps
+## Следующие шаги
 
-Once you have navigation links working:
-1. Add more locations (rooms, hallways, stairs)
-2. Create a complete navigation graph
-3. Test free navigation through the building
-4. Adjust hotspot positions using direction parameter
+Как только навигация заработает:
+1. Добавьте больше локаций (комнаты, коридоры, лестницы)
+2. Создайте полный граф навигации
+3. Протестируйте свободное перемещение по зданию
+4. Отрегулируйте позиции хотспотов, используя параметр направления

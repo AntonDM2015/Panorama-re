@@ -20,6 +20,23 @@ export class PanoramaRepository {
       createdAt: row.created_at,
     }));
   }
+  async getAll(): Promise<PanoramaImage[]> {
+    const { data, error } = await supabaseAdmin
+      .from('panoramas')
+      .select('*')
+      .order('sort_order', { ascending: true });
+
+    if (error) throw error;
+
+    return (data || []).map((row: any) => ({
+      id: row.id,
+      locationId: row.location_id,
+      url: row.url,
+      title: row.title,
+      sortOrder: row.sort_order,
+      createdAt: row.created_at,
+    }));
+  }
 
   async getById(id: string): Promise<PanoramaImage | null> {
     const { data, error } = await supabaseAdmin

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getBuildingById, getLocationsByBuilding, getPanoramasByLocation, getNavigationLinks } from '../services/api';
+import { getBuildingById, getLocationsByBuilding, getPanoramasByLocation } from '../services/api';
 import { Building, Location } from '../types';
 import PanoramaViewer from '../components/PanoramaViewer';
 import StreetViewMode from '../components/StreetViewMode';
@@ -18,6 +18,7 @@ const BuildingPage: React.FC = () => {
   const [expandedLocation, setExpandedLocation] = useState<string | null>(null);
   const [showStreetView, setShowStreetView] = useState(false);
   const [currentPanoramaIndex, setCurrentPanoramaIndex] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,11 +40,8 @@ const BuildingPage: React.FC = () => {
         const locationsWithPanoramas = await Promise.all(
           locationsData.map(async (loc) => {
             try {
-              const [panoramas, navigationLinks] = await Promise.all([
-                getPanoramasByLocation(loc.id),
-                getNavigationLinks(loc.id)
-              ]);
-              return { ...loc, panoramas, navigationLinks };
+              const panoramas = await getPanoramasByLocation(loc.id);
+              return { ...loc, panoramas };
             } catch (err) {
               console.error(`[BuildingPage] Error loading data for ${loc.name}:`, err);
               return loc;
@@ -128,6 +126,9 @@ const BuildingPage: React.FC = () => {
             <button className="building-page-back" onClick={() => navigate(-1)}>
               <span className="building-page-back-icon">←</span>
               <span>Назад</span>
+            </button>
+            <button className="building-page-back" onClick={() => navigate('/')} style={{ marginLeft: '12px' }}>
+              <span>🏡 На главную</span>
             </button>
             <button className="theme-toggle" onClick={toggleTheme} aria-label="Переключить тему">
               {theme === 'light' ? '🌙' : '☀️'}
@@ -231,19 +232,27 @@ const BuildingPage: React.FC = () => {
                         <div className="building-page-accordion-panorama">
                           {location.panoramas && location.panoramas.length > 0 ? (
                             <>
-                              <PanoramaViewer
-                                key={location.panoramas[currentPanoramaIndex]?.url || location.panoramas[0].url}
-                                imageUrl={location.panoramas[currentPanoramaIndex]?.url || location.panoramas[0].url}
-                                onLoad={handlePanoramaLoad}
-                                onError={handlePanoramaError}
-                              />
+                              <div className={`panorama-viewer-wrapper ${isTransitioning ? 'panorama-transitioning' : ''}`}>
+                                <PanoramaViewer
+                                  key={location.panoramas[currentPanoramaIndex]?.url || location.panoramas[0].url}
+                                  imageUrl={location.panoramas[currentPanoramaIndex]?.url || location.panoramas[0].url}
+                                  onLoad={handlePanoramaLoad}
+                                  onError={handlePanoramaError}
+                                />
+                              </div>
                               {location.panoramas.length > 1 && (
                                 <div className="building-page-panorama-nav">
                                   <button 
                                     className="building-page-nav-btn"
-                                    onClick={() => setCurrentPanoramaIndex(prev => 
-                                      prev > 0 ? prev - 1 : location.panoramas!.length - 1
-                                    )}
+                                    onClick={() => {
+                                      setIsTransitioning(true);
+                                      setTimeout(() => {
+                                        setCurrentPanoramaIndex(prev => 
+                                          prev > 0 ? prev - 1 : location.panoramas!.length - 1
+                                        );
+                                        setIsTransitioning(false);
+                                      }, 300);
+                                    }}
                                   >
                                     ‹
                                   </button>
@@ -252,9 +261,15 @@ const BuildingPage: React.FC = () => {
                                   </span>
                                   <button 
                                     className="building-page-nav-btn"
-                                    onClick={() => setCurrentPanoramaIndex(prev => 
-                                      prev < location.panoramas!.length - 1 ? prev + 1 : 0
-                                    )}
+                                    onClick={() => {
+                                      setIsTransitioning(true);
+                                      setTimeout(() => {
+                                        setCurrentPanoramaIndex(prev => 
+                                          prev < location.panoramas!.length - 1 ? prev + 1 : 0
+                                        );
+                                        setIsTransitioning(false);
+                                      }, 300);
+                                    }}
                                   >
                                     ›
                                   </button>
