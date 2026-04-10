@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "npx tsc && npx vite build",
-    "start": "npx serve dist -l 3000",
+    "start": "serve dist -l ${PORT:-3000} --single",
     "preview": "vite preview"
   },
   "dependencies": {
