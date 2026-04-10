@@ -1,100 +1,147 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.listCampusLocations = listCampusLocations;
-exports.findCampusLocationById = findCampusLocationById;
-exports.createCampusLocation = createCampusLocation;
-exports.updateCampusLocation = updateCampusLocation;
-exports.deleteCampusLocation = deleteCampusLocation;
-const http_errors_1 = __importDefault(require("http-errors"));
+exports.LocationRepository = void 0;
 const supabase_1 = require("../config/supabase");
-function mapLocationRow(row) {
-    return {
-        id: row.id,
-        name: row.name,
-        description: row.description,
-        panoramaUrl: row.panorama_url,
-        previewUrl: row.preview_url,
-        createdAt: new Date(row.created_at),
-    };
+class LocationRepository {
+    async getAll() {
+        const { data, error } = await supabase_1.supabaseAdmin
+            .from('locations')
+            .select('*')
+            .order('name', { ascending: true });
+        if (error)
+            throw error;
+        return (data || []).map((row) => ({
+            id: row.id,
+            buildingId: row.building_id,
+            name: row.name,
+            description: row.description,
+            floor: row.floor,
+            type: row.type,
+            roomNumber: row.room_number,
+            previewUrl: row.preview_url,
+            panoramaUrl: row.panorama_url,
+            createdAt: row.created_at,
+        }));
+    }
+    async getByBuildingId(buildingId) {
+        const { data, error } = await supabase_1.supabaseAdmin
+            .from('locations')
+            .select('*')
+            .eq('building_id', buildingId)
+            .order('floor', { ascending: true })
+            .order('name', { ascending: true });
+        if (error)
+            throw error;
+        return (data || []).map((row) => ({
+            id: row.id,
+            buildingId: row.building_id,
+            name: row.name,
+            description: row.description,
+            floor: row.floor,
+            type: row.type,
+            roomNumber: row.room_number,
+            previewUrl: row.preview_url,
+            panoramaUrl: row.panorama_url,
+            createdAt: row.created_at,
+        }));
+    }
+    async getById(id) {
+        const { data, error } = await supabase_1.supabaseAdmin
+            .from('locations')
+            .select('*')
+            .eq('id', id)
+            .single();
+        if (error)
+            throw error;
+        if (!data)
+            return null;
+        return {
+            id: data.id,
+            buildingId: data.building_id,
+            name: data.name,
+            description: data.description,
+            floor: data.floor,
+            type: data.type,
+            roomNumber: data.room_number,
+            previewUrl: data.preview_url,
+            panoramaUrl: data.panorama_url,
+            createdAt: data.created_at,
+        };
+    }
+    async create(data) {
+        const { data: result, error } = await supabase_1.supabaseAdmin
+            .from('locations')
+            .insert({
+            building_id: data.buildingId,
+            name: data.name,
+            description: data.description,
+            floor: data.floor,
+            type: data.type || 'location',
+            room_number: data.roomNumber,
+            preview_url: data.previewUrl,
+            panorama_url: data.panoramaUrl,
+        })
+            .select()
+            .single();
+        if (error)
+            throw error;
+        return {
+            id: result.id,
+            buildingId: result.building_id,
+            name: result.name,
+            description: result.description,
+            floor: result.floor,
+            type: result.type,
+            roomNumber: result.room_number,
+            previewUrl: result.preview_url,
+            panoramaUrl: result.panorama_url,
+            createdAt: result.created_at,
+        };
+    }
+    async update(id, updates) {
+        const dbUpdates = {};
+        if (updates.name !== undefined)
+            dbUpdates.name = updates.name;
+        if (updates.description !== undefined)
+            dbUpdates.description = updates.description;
+        if (updates.floor !== undefined)
+            dbUpdates.floor = updates.floor;
+        if (updates.type !== undefined)
+            dbUpdates.type = updates.type;
+        if (updates.roomNumber !== undefined)
+            dbUpdates.room_number = updates.roomNumber;
+        if (updates.previewUrl !== undefined)
+            dbUpdates.preview_url = updates.previewUrl;
+        if (updates.panoramaUrl !== undefined)
+            dbUpdates.panorama_url = updates.panoramaUrl;
+        const { data, error } = await supabase_1.supabaseAdmin
+            .from('locations')
+            .update(dbUpdates)
+            .eq('id', id)
+            .select()
+            .single();
+        if (error)
+            throw error;
+        return {
+            id: data.id,
+            buildingId: data.building_id,
+            name: data.name,
+            description: data.description,
+            floor: data.floor,
+            type: data.type,
+            roomNumber: data.room_number,
+            previewUrl: data.preview_url,
+            panoramaUrl: data.panorama_url,
+            createdAt: data.created_at,
+        };
+    }
+    async delete(id) {
+        const { error } = await supabase_1.supabaseAdmin
+            .from('locations')
+            .delete()
+            .eq('id', id);
+        if (error)
+            throw error;
+    }
 }
-async function listCampusLocations() {
-    const { data, error } = await supabase_1.supabaseAdmin
-        .from("locations")
-        .select("id, name, description, panorama_url, preview_url, created_at")
-        .order("created_at", { ascending: false });
-    if (error) {
-        throw (0, http_errors_1.default)(500, `Failed to list locations: ${error.message}`);
-    }
-    return (data ?? []).map((row) => mapLocationRow(row));
-}
-async function findCampusLocationById(locationId) {
-    const { data, error } = await supabase_1.supabaseAdmin
-        .from("locations")
-        .select("id, name, description, panorama_url, preview_url, created_at")
-        .eq("id", locationId)
-        .maybeSingle();
-    if (error) {
-        throw (0, http_errors_1.default)(500, `Failed to fetch location: ${error.message}`);
-    }
-    if (!data) {
-        return null;
-    }
-    return mapLocationRow(data);
-}
-async function createCampusLocation(params) {
-    const { data, error } = await supabase_1.supabaseAdmin
-        .from("locations")
-        .insert({
-        name: params.name,
-        description: params.description,
-        panorama_url: params.panoramaUrl,
-        preview_url: params.previewUrl,
-    })
-        .select("id, name, description, panorama_url, preview_url, created_at")
-        .single();
-    if (error) {
-        throw (0, http_errors_1.default)(500, `Failed to create location: ${error.message}`);
-    }
-    return mapLocationRow(data);
-}
-async function updateCampusLocation(locationId, params) {
-    const updatePayload = {};
-    if (typeof params.name === "string") {
-        updatePayload.name = params.name;
-    }
-    if (typeof params.description === "string") {
-        updatePayload.description = params.description;
-    }
-    if (typeof params.panoramaUrl === "string") {
-        updatePayload.panorama_url = params.panoramaUrl;
-    }
-    if (typeof params.previewUrl === "string") {
-        updatePayload.preview_url = params.previewUrl;
-    }
-    const { data, error } = await supabase_1.supabaseAdmin
-        .from("locations")
-        .update(updatePayload)
-        .eq("id", locationId)
-        .select("id, name, description, panorama_url, preview_url, created_at")
-        .maybeSingle();
-    if (error) {
-        throw (0, http_errors_1.default)(500, `Failed to update location: ${error.message}`);
-    }
-    if (!data) {
-        return null;
-    }
-    return mapLocationRow(data);
-}
-async function deleteCampusLocation(locationId) {
-    const { error, count } = await supabase_1.supabaseAdmin
-        .from("locations")
-        .delete({ count: "exact" })
-        .eq("id", locationId);
-    if (error) {
-        throw (0, http_errors_1.default)(500, `Failed to delete location: ${error.message}`);
-    }
-    return Boolean(count && count > 0);
-}
+exports.LocationRepository = LocationRepository;

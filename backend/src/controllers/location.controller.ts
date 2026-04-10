@@ -170,13 +170,20 @@ export class LocationController {
       if (!toPanoramaId) {
         return res.status(400).json({ message: 'toPanoramaId обязателен' });
       }
+      console.log('[createPanoramaLink] Attempting to create link:', {
+        fromPanoramaId: req.params.panoramaId,
+        toPanoramaId,
+        direction,
+      });
       const link = await locationService.createPanoramaLink({
         fromPanoramaId: req.params.panoramaId,
         toPanoramaId,
         direction,
       });
+      console.log('[createPanoramaLink] Success:', link);
       res.status(201).json({ link });
     } catch (error) {
+      console.error('[createPanoramaLink ERROR]', error);
       next(error);
     }
   };

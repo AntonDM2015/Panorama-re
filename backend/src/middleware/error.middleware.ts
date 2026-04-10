@@ -16,6 +16,9 @@ export function errorHandler(
   res: Response,
   _next: NextFunction
 ): void {
+  // Log actual error for debugging
+  console.error('[ERROR HANDLER]', error);
+
   if (error instanceof ZodError) {
     res.status(400).json({
       message: "Validation failed",
@@ -32,5 +35,6 @@ export function errorHandler(
 
   res.status(status).json({
     message,
+    ...(process.env.NODE_ENV === 'development' && { error: error.message }),
   });
 }

@@ -18,6 +18,10 @@ export interface Building {
   address: string | null;
   description: string | null;
   previewUrl: string | null;
+  workingHours: string | null;
+  phone: string | null;
+  facilities: string[] | null;
+  mapUrl: string | null;
   createdAt: string;
 }
 

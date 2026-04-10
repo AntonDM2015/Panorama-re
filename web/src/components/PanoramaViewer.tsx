@@ -319,8 +319,8 @@ class PanoramaEngine {
         const z = radius * sinT * sinP;
 
         positions.push(x, y, z);
-        // S is inverted so the texture is seen correctly from inside
-        texCoords.push(1 - lon / wSeg, lat / hSeg);
+        // Texture coordinates for inside-sphere viewing (no inversion needed)
+        texCoords.push(lon / wSeg, lat / hSeg);
       }
     }
 

@@ -17,6 +17,10 @@ export class BuildingRepository {
       address: row.address,
       description: row.description,
       previewUrl: row.preview_url,
+      workingHours: row.working_hours,
+      phone: row.phone,
+      facilities: row.facilities,
+      mapUrl: row.map_url,
       createdAt: row.created_at,
     }));
   }
@@ -37,6 +41,10 @@ export class BuildingRepository {
       address: row.address,
       description: row.description,
       previewUrl: row.preview_url,
+      workingHours: row.working_hours,
+      phone: row.phone,
+      facilities: row.facilities,
+      mapUrl: row.map_url,
       createdAt: row.created_at,
     }));
   }
@@ -58,11 +66,25 @@ export class BuildingRepository {
       address: data.address,
       description: data.description,
       previewUrl: data.preview_url,
+      workingHours: data.working_hours,
+      phone: data.phone,
+      facilities: data.facilities,
+      mapUrl: data.map_url,
       createdAt: data.created_at,
     };
   }
 
-  async create(data: { cityId: string; name: string; address?: string; description?: string; previewUrl?: string }): Promise<Building> {
+  async create(data: { 
+    cityId: string; 
+    name: string; 
+    address?: string; 
+    description?: string; 
+    previewUrl?: string;
+    workingHours?: string;
+    phone?: string;
+    facilities?: string[];
+    mapUrl?: string;
+  }): Promise<Building> {
     const { data: result, error } = await supabaseAdmin
       .from('buildings')
       .insert({
@@ -71,6 +93,10 @@ export class BuildingRepository {
         address: data.address,
         description: data.description,
         preview_url: data.previewUrl,
+        working_hours: data.workingHours,
+        phone: data.phone,
+        facilities: data.facilities,
+        map_url: data.mapUrl,
       })
       .select()
       .single();
@@ -84,16 +110,33 @@ export class BuildingRepository {
       address: result.address,
       description: result.description,
       previewUrl: result.preview_url,
+      workingHours: result.working_hours,
+      phone: result.phone,
+      facilities: result.facilities,
+      mapUrl: result.map_url,
       createdAt: result.created_at,
     };
   }
 
-  async update(id: string, updates: { name?: string; address?: string; description?: string; previewUrl?: string }): Promise<Building> {
+  async update(id: string, updates: { 
+    name?: string; 
+    address?: string; 
+    description?: string; 
+    previewUrl?: string;
+    workingHours?: string;
+    phone?: string;
+    facilities?: string[];
+    mapUrl?: string;
+  }): Promise<Building> {
     const dbUpdates: any = {};
     if (updates.name !== undefined) dbUpdates.name = updates.name;
     if (updates.address !== undefined) dbUpdates.address = updates.address;
     if (updates.description !== undefined) dbUpdates.description = updates.description;
     if (updates.previewUrl !== undefined) dbUpdates.preview_url = updates.previewUrl;
+    if (updates.workingHours !== undefined) dbUpdates.working_hours = updates.workingHours;
+    if (updates.phone !== undefined) dbUpdates.phone = updates.phone;
+    if (updates.facilities !== undefined) dbUpdates.facilities = updates.facilities;
+    if (updates.mapUrl !== undefined) dbUpdates.map_url = updates.mapUrl;
 
     const { data, error } = await supabaseAdmin
       .from('buildings')
@@ -111,6 +154,10 @@ export class BuildingRepository {
       address: data.address,
       description: data.description,
       previewUrl: data.preview_url,
+      workingHours: data.working_hours,
+      phone: data.phone,
+      facilities: data.facilities,
+      mapUrl: data.map_url,
       createdAt: data.created_at,
     };
   }

@@ -1,83 +1,202 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.listLocationsController = listLocationsController;
-exports.getLocationByIdController = getLocationByIdController;
-exports.createLocationController = createLocationController;
-exports.updateLocationController = updateLocationController;
-exports.deleteLocationController = deleteLocationController;
-const zod_1 = require("zod");
+exports.LocationController = void 0;
 const location_service_1 = require("../services/location.service");
-const createLocationSchema = zod_1.z.object({
-    name: zod_1.z.string().min(2).max(120),
-    description: zod_1.z.string().min(5).max(1000),
-    panoramaUrl: zod_1.z.string().url(),
-    previewUrl: zod_1.z.string().url(),
-});
-const updateLocationSchema = zod_1.z
-    .object({
-    name: zod_1.z.string().min(2).max(120).optional(),
-    description: zod_1.z.string().min(5).max(1000).optional(),
-    panoramaUrl: zod_1.z.string().url().optional(),
-    previewUrl: zod_1.z.string().url().optional(),
-})
-    .refine((payload) => Object.keys(payload).length > 0, {
-    message: "At least one field is required for update",
-});
-const idParamSchema = zod_1.z.object({
-    id: zod_1.z.string().uuid(),
-});
-async function listLocationsController(_req, res, next) {
-    try {
-        const locations = await (0, location_service_1.getCampusLocations)();
-        res.status(200).json({ locations });
-    }
-    catch (error) {
-        next(error);
-    }
+const locationService = new location_service_1.LocationService();
+class LocationController {
+    // GET /api/locations
+    getAll = async (req, res, next) => {
+        try {
+            const locations = await locationService.getAllLocations();
+            res.json({ locations });
+        }
+        catch (error) {
+            next(error);
+        }
+    };
+    // GET /api/buildings/:buildingId/locations
+    getByBuilding = async (req, res, next) => {
+        try {
+            const locations = await locationService.getLocationsByBuilding(req.params.buildingId);
+            res.json({ locations });
+        }
+        catch (error) {
+            next(error);
+        }
+    };
+    // GET /api/locations/:id
+    getById = async (req, res, next) => {
+        try {
+            const location = await locationService.getLocationById(req.params.id);
+            if (!location) {
+                return res.status(404).json({ message: 'Локация не найдена' });
+            }
+            res.json({ location });
+        }
+        catch (error) {
+            next(error);
+        }
+    };
+    // POST /api/locations (admin only)
+    create = async (req, res, next) => {
+        try {
+            const { buildingId, name, description, floor, type, roomNumber, previewUrl, panoramaUrl } = req.body;
+            if (!buildingId || !name) {
+                return res.status(400).json({ message: 'buildingId и name обязательны' });
+            }
+            const location = await locationService.createLocation({
+                buildingId,
+                name,
+                description,
+                floor,
+                type,
+                roomNumber,
+                previewUrl,
+                panoramaUrl,
+            });
+            res.status(201).json({ location });
+        }
+        catch (error) {
+            next(error);
+        }
+    };
+    // PUT /api/locations/:id (admin only)
+    update = async (req, res, next) => {
+        try {
+            const { name, description, floor, type, roomNumber, previewUrl, panoramaUrl } = req.body;
+            const location = await locationService.updateLocation(req.params.id, {
+                name,
+                description,
+                floor,
+                type,
+                roomNumber,
+                previewUrl,
+                panoramaUrl,
+            });
+            res.json({ location });
+        }
+        catch (error) {
+            next(error);
+        }
+    };
+    // DELETE /api/locations/:id (admin only)
+    delete = async (req, res, next) => {
+        try {
+            await locationService.deleteLocation(req.params.id);
+            res.json({ message: 'Локация удалена' });
+        }
+        catch (error) {
+            next(error);
+        }
+    };
+    // GET /api/panoramas
+    getAllPanoramas = async (req, res, next) => {
+        try {
+            const panoramas = await locationService.getAllPanoramas();
+            res.json({ panoramas });
+        }
+        catch (error) {
+            next(error);
+        }
+    };
+    // GET /api/locations/:locationId/panoramas
+    getPanoramas = async (req, res, next) => {
+        try {
+            const panoramas = await locationService.getLocationPanoramas(req.params.locationId);
+            res.json({ panoramas });
+        }
+        catch (error) {
+            next(error);
+        }
+    };
+    // POST /api/locations/:locationId/panoramas (admin only)
+    createPanorama = async (req, res, next) => {
+        try {
+            const { url, title, sortOrder } = req.body;
+            if (!url) {
+                return res.status(400).json({ message: 'URL панорамы обязателен' });
+            }
+            const panorama = await locationService.createPanorama({
+                locationId: req.params.locationId,
+                url,
+                title,
+                sortOrder,
+            });
+            res.status(201).json({ panorama });
+        }
+        catch (error) {
+            next(error);
+        }
+    };
+    // PUT /api/panoramas/:id (admin only)
+    updatePanorama = async (req, res, next) => {
+        try {
+            const { url, title, sortOrder } = req.body;
+            const panorama = await locationService.updatePanorama(req.params.id, {
+                url,
+                title,
+                sortOrder,
+            });
+            res.json({ panorama });
+        }
+        catch (error) {
+            next(error);
+        }
+    };
+    // DELETE /api/panoramas/:id (admin only)
+    deletePanorama = async (req, res, next) => {
+        try {
+            await locationService.deletePanorama(req.params.id);
+            res.json({ message: 'Панорама удалена' });
+        }
+        catch (error) {
+            next(error);
+        }
+    };
+    // GET /api/panoramas/:panoramaId/links
+    getPanoramaLinks = async (req, res, next) => {
+        try {
+            const links = await locationService.getPanoramaLinks(req.params.panoramaId);
+            res.json({ links });
+        }
+        catch (error) {
+            next(error);
+        }
+    };
+    // POST /api/panoramas/:panoramaId/links (admin only)
+    createPanoramaLink = async (req, res, next) => {
+        try {
+            const { toPanoramaId, direction } = req.body;
+            if (!toPanoramaId) {
+                return res.status(400).json({ message: 'toPanoramaId обязателен' });
+            }
+            console.log('[createPanoramaLink] Attempting to create link:', {
+                fromPanoramaId: req.params.panoramaId,
+                toPanoramaId,
+                direction,
+            });
+            const link = await locationService.createPanoramaLink({
+                fromPanoramaId: req.params.panoramaId,
+                toPanoramaId,
+                direction,
+            });
+            console.log('[createPanoramaLink] Success:', link);
+            res.status(201).json({ link });
+        }
+        catch (error) {
+            console.error('[createPanoramaLink ERROR]', error);
+            next(error);
+        }
+    };
+    // DELETE /api/panorama-links/:id (admin only)
+    deletePanoramaLink = async (req, res, next) => {
+        try {
+            await locationService.deletePanoramaLink(req.params.id);
+            res.json({ message: 'Связь удалена' });
+        }
+        catch (error) {
+            next(error);
+        }
+    };
 }
-async function getLocationByIdController(req, res, next) {
-    try {
-        const params = idParamSchema.parse(req.params);
-        const location = await (0, location_service_1.getCampusLocationById)(params.id);
-        res.status(200).json({ location });
-    }
-    catch (error) {
-        next(error);
-    }
-}
-async function createLocationController(req, res, next) {
-    try {
-        const body = createLocationSchema.parse(req.body);
-        const location = await (0, location_service_1.createCampusLocationWithPanorama)({
-            name: body.name,
-            description: body.description,
-            panoramaUrl: body.panoramaUrl,
-            previewUrl: body.previewUrl,
-        });
-        res.status(201).json({ location });
-    }
-    catch (error) {
-        next(error);
-    }
-}
-async function updateLocationController(req, res, next) {
-    try {
-        const params = idParamSchema.parse(req.params);
-        const body = updateLocationSchema.parse(req.body);
-        const location = await (0, location_service_1.updateCampusLocationById)(params.id, body);
-        res.status(200).json({ location });
-    }
-    catch (error) {
-        next(error);
-    }
-}
-async function deleteLocationController(req, res, next) {
-    try {
-        const params = idParamSchema.parse(req.params);
-        await (0, location_service_1.deleteCampusLocationById)(params.id);
-        res.status(204).send();
-    }
-    catch (error) {
-        next(error);
-    }
-}
+exports.LocationController = LocationController;

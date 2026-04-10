@@ -14,6 +14,12 @@ export class PanoramaLinkRepository {
   }
 
   async create(data: { fromPanoramaId: string; toPanoramaId: string; direction?: string }): Promise<PanoramaLink> {
+    console.log('[PanoramaLinkRepository.create] Inserting:', {
+      from_panorama_id: data.fromPanoramaId,
+      to_panorama_id: data.toPanoramaId,
+      direction: data.direction || null,
+    });
+
     const { data: result, error } = await supabaseAdmin
       .from('panorama_links')
       .insert({
@@ -24,8 +30,12 @@ export class PanoramaLinkRepository {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('[PanoramaLinkRepository.create] Supabase error:', error);
+      throw new Error(`Ошибка при создании связи: ${error.message || 'Неизвестная ошибка'}`);
+    }
 
+    console.log('[PanoramaLinkRepository.create] Success:', result);
     return this.mapToPanoramaLink(result);
   }
 

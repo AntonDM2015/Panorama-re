@@ -11,6 +11,8 @@ function notFoundHandler(_req, _res, next) {
     next((0, http_errors_1.default)(404, "Route not found"));
 }
 function errorHandler(error, _req, res, _next) {
+    // Log actual error for debugging
+    console.error('[ERROR HANDLER]', error);
     if (error instanceof zod_1.ZodError) {
         res.status(400).json({
             message: "Validation failed",
@@ -25,5 +27,6 @@ function errorHandler(error, _req, res, _next) {
     const message = status >= 500 ? "Internal server error" : error.message;
     res.status(status).json({
         message,
+        ...(process.env.NODE_ENV === 'development' && { error: error.message }),
     });
 }
