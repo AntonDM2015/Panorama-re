@@ -4,3 +4,13 @@ dist/
 */dist/
 .env
 */.env
+
+# IDE и временные файлы
+.qoder/
+.qwen/
+*.log
+
+# OS файлы
+.DS_Store
+Thumbs.db
+desktop.ini

@@ -3,7 +3,9 @@
     "allow": [
       "Bash(chcp *)",
       "Bash(npm run *)",
-      "Bash(npx *)"
+      "Bash(npx *)",
+      "Bash(rmdir *)",
+      "Bash(del *)"
     ]
   },
   "$version": 3
