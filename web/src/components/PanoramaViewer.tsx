@@ -366,6 +366,33 @@ class PanoramaEngine {
 
   // ---- Texture loading ----
 
+  private createTextureSourceForMobile(img: HTMLImageElement): TexImageSource {
+    const gl = this.gl;
+    const maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE) as number;
+    const width = img.naturalWidth || img.width;
+    const height = img.naturalHeight || img.height;
+
+    if (width <= maxTextureSize && height <= maxTextureSize) {
+      return img;
+    }
+
+    const scale = Math.min(maxTextureSize / width, maxTextureSize / height);
+    const targetWidth = Math.max(1, Math.floor(width * scale));
+    const targetHeight = Math.max(1, Math.floor(height * scale));
+
+    const canvas = document.createElement('canvas');
+    canvas.width = targetWidth;
+    canvas.height = targetHeight;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      return img;
+    }
+
+    ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+    return canvas;
+  }
+
   loadTexture(url: string): Promise<WebGLTexture> {
     return new Promise((resolve, reject) => {
       const gl = this.gl;
@@ -380,10 +407,19 @@ class PanoramaEngine {
       img.crossOrigin = 'anonymous';
       img.onload = () => {
         gl.bindTexture(gl.TEXTURE_2D, tex);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+        const source = this.createTextureSourceForMobile(img);
+        const { width, height } = getTextureSourceSize(source);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
+
+        const textureError = gl.getError();
+        if (textureError !== gl.NO_ERROR) {
+          gl.deleteTexture(tex);
+          reject(new Error(`Failed to upload panorama texture (WebGL error ${textureError})`));
+          return;
+        }
 
         // Use MIPMAP for quality
-        if (isPowerOf2(img.width) && isPowerOf2(img.height)) {
+        if (isPowerOf2(width) && isPowerOf2(height)) {
           gl.generateMipmap(gl.TEXTURE_2D);
           gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
         } else {
@@ -860,6 +896,19 @@ class PanoramaEngine {
 
 function isPowerOf2(value: number): boolean {
   return (value & (value - 1)) === 0 && value !== 0;
+}
+
+function getTextureSourceSize(source: TexImageSource): { width: number; height: number } {
+  if ('videoWidth' in source && 'videoHeight' in source) {
+    return { width: source.videoWidth, height: source.videoHeight };
+  }
+  if ('naturalWidth' in source && 'naturalHeight' in source) {
+    return { width: source.naturalWidth, height: source.naturalHeight };
+  }
+  if ('width' in source && 'height' in source) {
+    return { width: source.width, height: source.height };
+  }
+  return { width: 0, height: 0 };
 }
 
 // ============================================================
