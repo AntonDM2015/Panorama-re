@@ -27,6 +27,14 @@ const AdminPage: React.FC = () => {
   const [newCityCountry, setNewCityCountry] = useState('Россия');
   const [newBuildingName, setNewBuildingName] = useState('');
   const [newBuildingCityId, setNewBuildingCityId] = useState('');
+  const [newBuildingAddress, setNewBuildingAddress] = useState('');
+  const [newBuildingDescription, setNewBuildingDescription] = useState('');
+  const [newBuildingPreviewUrl, setNewBuildingPreviewUrl] = useState('');
+  const [newBuildingWorkingHours, setNewBuildingWorkingHours] = useState('');
+  const [newBuildingPhone, setNewBuildingPhone] = useState('');
+  const [newBuildingFacilities, setNewBuildingFacilities] = useState<string[]>([]);
+  const [newBuildingMapUrl, setNewBuildingMapUrl] = useState('');
+  const [newFacilityInput, setNewFacilityInput] = useState('');
   const [newLocationName, setNewLocationName] = useState('');
   const [newLocationBuildingId, setNewLocationBuildingId] = useState('');
   const [newLocationType, setNewLocationType] = useState<'location' | 'room'>('location');
@@ -121,10 +129,18 @@ const AdminPage: React.FC = () => {
     if (!newBuildingName.trim() || !newBuildingCityId) return;
     try {
       console.log('[Admin] Adding building:', newBuildingName, 'cityId:', newBuildingCityId);
-      await createBuilding({ cityId: newBuildingCityId, name: newBuildingName });
-      setNewBuildingName('');
-      setNewBuildingCityId('');
-      setShowBuildingForm(false);
+      await createBuilding({ 
+        cityId: newBuildingCityId, 
+        name: newBuildingName,
+        address: newBuildingAddress || undefined,
+        description: newBuildingDescription || undefined,
+        previewUrl: newBuildingPreviewUrl || undefined,
+        workingHours: newBuildingWorkingHours || undefined,
+        phone: newBuildingPhone || undefined,
+        facilities: newBuildingFacilities.length > 0 ? newBuildingFacilities : undefined,
+        mapUrl: newBuildingMapUrl || undefined,
+      });
+      resetBuildingForm();
       fetchData();
     } catch (err: any) {
       console.error('[Admin] Error adding building:', err);
@@ -201,7 +217,38 @@ const AdminPage: React.FC = () => {
     setEditingBuilding(building);
     setNewBuildingName(building.name);
     setNewBuildingCityId(building.cityId);
+    setNewBuildingAddress(building.address || '');
+    setNewBuildingDescription(building.description || '');
+    setNewBuildingPreviewUrl(building.previewUrl || '');
+    setNewBuildingWorkingHours(building.workingHours || '');
+    setNewBuildingPhone(building.phone || '');
+    setNewBuildingFacilities(building.facilities || []);
+    setNewBuildingMapUrl(building.mapUrl || '');
     setShowBuildingForm(true);
+  };
+
+  const resetBuildingForm = () => {
+    setNewBuildingName('');
+    setNewBuildingCityId('');
+    setNewBuildingAddress('');
+    setNewBuildingDescription('');
+    setNewBuildingPreviewUrl('');
+    setNewBuildingWorkingHours('');
+    setNewBuildingPhone('');
+    setNewBuildingFacilities([]);
+    setNewBuildingMapUrl('');
+    setNewFacilityInput('');
+    setShowBuildingForm(false);
+  };
+
+  const handleAddFacility = () => {
+    if (!newFacilityInput.trim()) return;
+    setNewBuildingFacilities([...newBuildingFacilities, newFacilityInput.trim()]);
+    setNewFacilityInput('');
+  };
+
+  const handleRemoveFacility = (index: number) => {
+    setNewBuildingFacilities(newBuildingFacilities.filter((_, i) => i !== index));
   };
 
   const handleEditLocation = (location: Location) => {
@@ -232,11 +279,17 @@ const AdminPage: React.FC = () => {
   const handleUpdateBuilding = async () => {
     if (!editingBuilding || !newBuildingName.trim()) return;
     try {
-      await updateBuilding(editingBuilding.id, { name: newBuildingName });
-      setEditingBuilding(null);
-      setNewBuildingName('');
-      setNewBuildingCityId('');
-      setShowBuildingForm(false);
+      await updateBuilding(editingBuilding.id, { 
+        name: newBuildingName,
+        address: newBuildingAddress || undefined,
+        description: newBuildingDescription || undefined,
+        previewUrl: newBuildingPreviewUrl || undefined,
+        workingHours: newBuildingWorkingHours || undefined,
+        phone: newBuildingPhone || undefined,
+        facilities: newBuildingFacilities.length > 0 ? newBuildingFacilities : undefined,
+        mapUrl: newBuildingMapUrl || undefined,
+      });
+      resetBuildingForm();
       fetchData();
     } catch (err: any) {
       console.error('[Admin] Error updating building:', err);
@@ -274,6 +327,14 @@ const AdminPage: React.FC = () => {
     setNewCityCountry('Россия');
     setNewBuildingName('');
     setNewBuildingCityId('');
+    setNewBuildingAddress('');
+    setNewBuildingDescription('');
+    setNewBuildingPreviewUrl('');
+    setNewBuildingWorkingHours('');
+    setNewBuildingPhone('');
+    setNewBuildingFacilities([]);
+    setNewBuildingMapUrl('');
+    setNewFacilityInput('');
     setNewLocationName('');
     setNewLocationBuildingId('');
     setNewLocationPanoramaUrl('');
@@ -511,24 +572,96 @@ const AdminPage: React.FC = () => {
           <div className="admin-section">
             <div className="admin-section-header">
               <h2>Корпуса ({buildings.length})</h2>
-              <button className="admin-add-button" onClick={() => setShowBuildingForm(!showBuildingForm)}>
+              <button className="admin-add-button" onClick={() => {
+                if (showBuildingForm) {
+                  resetBuildingForm();
+                } else {
+                  setEditingBuilding(null);
+                  resetBuildingForm();
+                  setShowBuildingForm(true);
+                }
+              }}>
                 {showBuildingForm ? 'Отмена' : '+ Добавить корпус'}
               </button>
             </div>
 
             {showBuildingForm && (
-              <div className="admin-form">
-                <select value={newBuildingCityId} onChange={(e) => setNewBuildingCityId(e.target.value)} className="admin-form-select" disabled={!!editingBuilding}>
-                  <option value="">Выберите город</option>
-                  {cities.map(city => <option key={city.id} value={city.id}>{city.name}</option>)}
-                </select>
-                <input type="text" placeholder="Название корпуса" value={newBuildingName} onChange={(e) => setNewBuildingName(e.target.value)} className="admin-form-input" />
-                <button onClick={editingBuilding ? handleUpdateBuilding : handleAddBuilding} className="admin-form-button">
-                  {editingBuilding ? 'Обновить' : 'Создать'}
-                </button>
-                {editingBuilding && (
-                  <button onClick={cancelEdit} className="admin-cancel-button">Отмена</button>
+              <div className="admin-form admin-building-form">
+                {cities.length === 0 ? (
+                  <div className="admin-warning-message">
+                    Сначала добавьте хотя бы один город на вкладке "Города"
+                  </div>
+                ) : (
+                  <>
+                    <div className="admin-form-row">
+                      <select value={newBuildingCityId} onChange={(e) => setNewBuildingCityId(e.target.value)} className="admin-form-select">
+                        <option value="">Выберите город</option>
+                        {cities.map(city => <option key={city.id} value={city.id}>{city.name}</option>)}
+                      </select>
+                      <input type="text" placeholder="Название корпуса *" value={newBuildingName} onChange={(e) => setNewBuildingName(e.target.value)} className="admin-form-input" />
+                    </div>
+                  </>
                 )}
+
+                <input type="text" placeholder="Адрес" value={newBuildingAddress} onChange={(e) => setNewBuildingAddress(e.target.value)} className="admin-form-input" />
+                
+                <textarea 
+                  placeholder="Описание корпуса" 
+                  value={newBuildingDescription} 
+                  onChange={(e) => setNewBuildingDescription(e.target.value)} 
+                  className="admin-form-textarea"
+                  rows={3}
+                />
+                
+                <input type="text" placeholder="URL превью изображения" value={newBuildingPreviewUrl} onChange={(e) => setNewBuildingPreviewUrl(e.target.value)} className="admin-form-input" />
+                
+                <div className="admin-form-row">
+                  <input type="text" placeholder="Режим работы (например: Пн-Пт: 8:00 - 20:00)" value={newBuildingWorkingHours} onChange={(e) => setNewBuildingWorkingHours(e.target.value)} className="admin-form-input" />
+                  <input type="text" placeholder="Телефон" value={newBuildingPhone} onChange={(e) => setNewBuildingPhone(e.target.value)} className="admin-form-input" />
+                </div>
+                
+                <div className="admin-facilities-section">
+                  <label className="admin-form-label">Удобства:</label>
+                  <div className="admin-facilities-input-row">
+                    <input 
+                      type="text" 
+                      placeholder="Добавить удобство..." 
+                      value={newFacilityInput} 
+                      onChange={(e) => setNewFacilityInput(e.target.value)}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleAddFacility();
+                        }
+                      }}
+                      className="admin-form-input"
+                    />
+                    <button type="button" onClick={handleAddFacility} className="admin-add-facility-btn">+</button>
+                  </div>
+                  {newBuildingFacilities.length > 0 && (
+                    <div className="admin-facilities-list">
+                      {newBuildingFacilities.map((facility, index) => (
+                        <span key={index} className="admin-facility-tag">
+                          {facility}
+                          <button type="button" onClick={() => handleRemoveFacility(index)} className="admin-facility-remove">×</button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                
+                <input type="text" placeholder="Ссылка на карту (Google Maps, Yandex Maps)" value={newBuildingMapUrl} onChange={(e) => setNewBuildingMapUrl(e.target.value)} className="admin-form-input" />
+                
+                <div className="admin-form-actions">
+                  <button onClick={editingBuilding ? handleUpdateBuilding : handleAddBuilding} className="admin-form-button">
+                    {editingBuilding ? 'Обновить' : 'Создать'}
+                  </button>
+                  <button onClick={() => {
+                    resetBuildingForm();
+                  }} className="admin-cancel-button">
+                    Отмена
+                  </button>
+                </div>
               </div>
             )}
 

@@ -2,244 +2,121 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: var(--bg-primary);
-  transition: background-color var(--transition-slow);
+  background: radial-gradient(1200px 600px at 10% -10%, rgba(27, 58, 107, 0.12), transparent),
+    radial-gradient(900px 500px at 90% -20%, rgba(35, 95, 170, 0.15), transparent),
+    var(--background);
+  color: var(--foreground);
 }
-
-/* ===================================
-   HEADER - Fixed with Glassmorphism
-   =================================== */
-
-.home-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: var(--z-sticky);
-  background: var(--header-bg);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  padding: var(--spacing-lg) 0;
-  transition: all var(--transition-slow);
-}
-
-.home-header-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 var(--spacing-xl);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.home-logo {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-lg);
-}
-
-.home-logo-icon {
-  font-size: 32px;
-  width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: var(--radius-md);
-}
-
-.home-logo-text {
-  flex: 1;
-}
-
-.home-logo-title {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--header-text);
-  letter-spacing: -0.02em;
-}
-
-.home-logo-subtitle {
-  margin: var(--spacing-xs) 0 0 0;
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.8);
-  font-weight: 500;
-}
-
-/* ===================================
-   MAIN CONTENT
-   =================================== */
 
 .home-main {
   flex: 1;
-  padding-top: 120px;
-  padding-bottom: var(--spacing-3xl);
-  padding-left: var(--spacing-xl);
-  padding-right: var(--spacing-xl);
-}
-
-.home-container {
+  width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-}
-
-.home-section {
-  margin-bottom: var(--spacing-3xl);
+  padding: 28px 16px 44px;
 }
 
 .home-section-title {
-  margin: 0 0 var(--spacing-2xl) 0;
-  font-size: 32px;
-  font-weight: 700;
-  color: var(--text-primary);
+  margin: 0 0 24px;
+  font-size: 34px;
+  font-weight: 800;
   letter-spacing: -0.03em;
-  animation: fadeInUp 0.4s ease forwards;
 }
-
-/* ===================================
-   CITIES GRID - Glass Cards
-   =================================== */
 
 .home-cities-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: var(--spacing-lg);
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 16px;
 }
 
 .home-city-card {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-lg);
-  padding: var(--spacing-xl);
+  display: block;
+  padding: 20px;
+  border-radius: 18px;
   background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
   backdrop-filter: blur(var(--glass-blur));
   -webkit-backdrop-filter: blur(var(--glass-blur));
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
-  transition: all var(--transition-base);
-  cursor: pointer;
-  opacity: 0;
-  animation: fadeInUp 0.4s ease forwards;
   box-shadow: var(--shadow-md);
+  transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
 }
 
 .home-city-card:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-lg);
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: color-mix(in srgb, var(--primary) 35%, var(--glass-border));
 }
 
-.home-city-card:active {
-  transform: scale(0.97) translateY(0);
-  transition: transform var(--transition-fast);
+.home-city-main {
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
 
-.home-city-card-icon {
-  font-size: 40px;
-  width: 64px;
-  height: 64px;
+.home-city-icon-wrap {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-primary);
-  border-radius: var(--radius-md);
-  flex-shrink: 0;
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--primary) 26%, transparent);
 }
 
-.home-city-card-content {
-  flex: 1;
-  min-width: 0;
+.home-city-icon {
+  color: var(--primary);
 }
 
-.home-city-card-name {
-  margin: 0 0 var(--spacing-xs) 0;
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--text-primary);
-  letter-spacing: -0.02em;
-}
-
-.home-city-card-country {
+.home-city-name {
   margin: 0;
-  font-size: 14px;
-  color: var(--text-secondary);
-  font-weight: 500;
+  font-size: 22px;
+  line-height: 1.2;
+  font-weight: 800;
 }
 
-.home-city-card-arrow {
-  font-size: 24px;
-  color: var(--accent-primary);
-  font-weight: 700;
+.home-city-country {
+  margin: 4px 0 0;
+  color: var(--muted-foreground);
+  font-size: 14px;
+}
+
+.home-city-bottom {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.home-city-count {
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.home-city-arrow {
+  color: var(--primary);
   transition: transform var(--transition-base);
 }
 
-.home-city-card:hover .home-city-card-arrow {
-  transform: translateX(4px);
+.home-city-card:hover .home-city-arrow {
+  transform: translateX(3px);
 }
 
-/* ===================================
-   EMPTY STATE
-   =================================== */
-
 .home-empty {
-  text-align: center;
-  padding: var(--spacing-3xl) var(--spacing-xl);
-  opacity: 0;
-  animation: fadeInUp 0.4s ease forwards;
+  padding: 34px;
+  border-radius: 16px;
+  background: var(--card);
+  border: 1px dashed var(--border);
 }
 
 .home-empty-text {
-  color: var(--text-secondary);
-  font-size: 16px;
-  font-weight: 500;
+  margin: 0;
+  color: var(--muted-foreground);
 }
-
-/* ===================================
-   FOOTER - Blue
-   =================================== */
-
-.home-footer {
-  background: var(--footer-bg);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding: var(--spacing-lg);
-  text-align: center;
-}
-
-.home-footer-text {
-  margin: 0 0 var(--spacing-xs) 0;
-  color: var(--footer-text);
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.home-admin-link {
-  display: inline-block;
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 12px;
-  font-weight: 500;
-  text-decoration: none;
-  transition: color var(--transition-base);
-  opacity: 0.6;
-}
-
-.home-admin-link:hover {
-  color: rgba(255, 255, 255, 0.9);
-  opacity: 1;
-}
-
-.home-admin-link:active {
-  transform: scale(0.97);
-  transition: transform var(--transition-fast);
-}
-
-/* ===================================
-   LOADING & ERROR STATES
-   =================================== */
 
 .home-loading,
 .home-error {
@@ -248,113 +125,29 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background-color: var(--bg-primary);
-  gap: var(--spacing-lg);
-  padding: var(--spacing-xl);
+  gap: 12px;
+  background: var(--background);
 }
 
-.home-loading-text {
-  color: var(--text-secondary);
-  font-size: 16px;
-  font-weight: 500;
+.home-loading-text,
+.home-error-text {
+  margin: 0;
+  color: var(--muted-foreground);
 }
 
 .home-error-title {
+  margin: 0;
   color: var(--error);
-  font-size: 24px;
-  font-weight: 700;
-  margin: 0;
+  font-size: 26px;
+  font-weight: 800;
 }
 
-.home-error-text {
-  color: var(--text-secondary);
-  font-size: 16px;
-  margin: 0;
-  text-align: center;
-  max-width: 400px;
-}
-
-/* ===================================
-   RESPONSIVE DESIGN
-   =================================== */
-
-/* Mobile */
 @media (max-width: 768px) {
-  .home-header {
-    padding: var(--spacing-md) 0;
-  }
-
-  .home-logo-icon {
-    font-size: 24px;
-    width: 40px;
-    height: 40px;
-  }
-
-  .home-logo-title {
-    font-size: 16px;
-  }
-
-  .home-logo-subtitle {
-    font-size: 12px;
-  }
-
   .home-main {
-    padding-top: 100px;
-    padding-left: var(--spacing-md);
-    padding-right: var(--spacing-md);
+    padding-top: 20px;
   }
 
   .home-section-title {
-    font-size: 24px;
-    margin-bottom: var(--spacing-xl);
-  }
-
-  .home-cities-grid {
-    grid-template-columns: 1fr;
-    gap: var(--spacing-md);
-  }
-
-  .home-city-card {
-    padding: var(--spacing-lg);
-  }
-
-  .home-city-card-icon {
-    font-size: 32px;
-    width: 56px;
-    height: 56px;
-  }
-
-  .home-city-card-name {
-    font-size: 18px;
-  }
-}
-
-/* Tablet */
-@media (min-width: 768px) and (max-width: 1024px) {
-  .home-cities-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-/* Large screens */
-@media (min-width: 1440px) {
-  .home-container {
-    max-width: 1400px;
-  }
-
-  .home-cities-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--spacing-xl);
-  }
-}
-
-/* Touch device optimizations */
-@media (hover: none) and (pointer: coarse) {
-  .home-city-card {
-    min-height: 80px;
-  }
-
-  .home-city-card:active {
-    transform: scale(0.98);
+    font-size: 28px;
   }
 }

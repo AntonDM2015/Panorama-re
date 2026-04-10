@@ -210,12 +210,16 @@ export const getBuildingById = async (id: string): Promise<Building> => {
   }
 };
 
-export const createBuilding = async (data: { 
-  cityId: string; 
-  name: string; 
-  address?: string; 
-  description?: string; 
+export const createBuilding = async (data: {
+  cityId: string;
+  name: string;
+  address?: string;
+  description?: string;
   previewUrl?: string;
+  workingHours?: string;
+  phone?: string;
+  facilities?: string[];
+  mapUrl?: string;
 }): Promise<Building> => {
   try {
     const response = await api.post('/api/buildings', data);
@@ -226,11 +230,15 @@ export const createBuilding = async (data: {
   }
 };
 
-export const updateBuilding = async (id: string, data: { 
-  name?: string; 
-  address?: string; 
-  description?: string; 
+export const updateBuilding = async (id: string, data: {
+  name?: string;
+  address?: string;
+  description?: string;
   previewUrl?: string;
+  workingHours?: string;
+  phone?: string;
+  facilities?: string[];
+  mapUrl?: string;
 }): Promise<Building> => {
   try {
     const response = await api.put(`/api/buildings/${id}`, data);

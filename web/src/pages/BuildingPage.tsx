@@ -1,17 +1,155 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { getBuildingById, getLocationsByBuilding, getPanoramasByLocation } from '../services/api';
+﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { ArrowLeft, Building2, CheckCircle2, Clock3, MapPin, Navigation, Phone } from 'lucide-react';
+import {
+  getBuildingById,
+  getCityById,
+  getLocationsByBuilding,
+  getPanoramasByLocation,
+} from '../services/api';
 import { Building, Location } from '../types';
 import PanoramaViewer from '../components/PanoramaViewer';
 import StreetViewMode from '../components/StreetViewMode';
-import { useTheme } from '../contexts/ThemeContext';
+import SiteHeader from '../components/SiteHeader';
+import SiteFooter from '../components/SiteFooter';
 import './BuildingPage.css';
+
+interface BuildingProfile {
+  matches: string[];
+  image: string;
+  facilities: string[];
+  workingHours: string;
+  phone: string;
+}
+
+const DESIGN_PROFILES: BuildingProfile[] = [
+  {
+    matches: ['спартаковская 112', 'spartakovskaya 112'],
+    image:
+      'https://images.unsplash.com/photo-1679653226697-2b0fbf7c17f7?auto=format&fit=crop&w=1600&q=80',
+    facilities: ['Аудитории', 'Компьютерные классы', 'Библиотека', 'Столовая', 'Спортзал'],
+    workingHours: 'Пн-Пт: 8:00 - 20:00, Сб: 9:00 - 15:00',
+    phone: '+7 (4832) 74-37-36',
+  },
+  {
+    matches: ['бежицкая 95', 'bezhitskaya 95'],
+    image:
+      'https://images.unsplash.com/photo-1604147706283-d7119b5b822c?auto=format&fit=crop&w=1600&q=80',
+    facilities: ['Лаборатории', 'Лекционные залы', 'Коворкинг', 'Кафетерий'],
+    workingHours: 'Пн-Пт: 8:00 - 19:00',
+    phone: '+7 (4832) 74-25-89',
+  },
+  {
+    matches: ['красногвардейская 32', 'krasnogvardeiskaya 32'],
+    image:
+      'https://images.unsplash.com/photo-1721657197499-5c12825c3a11?auto=format&fit=crop&w=1600&q=80',
+    facilities: ['Общежитие', 'Столовая', 'Прачечная', 'Спортивная площадка'],
+    workingHours: 'Круглосуточно',
+    phone: '+7 (4832) 74-18-42',
+  },
+  {
+    matches: ['стремянный 36', 'stremyanny 36'],
+    image:
+      'https://images.unsplash.com/photo-1614763607331-7163d2545757?auto=format&fit=crop&w=1600&q=80',
+    facilities: ['Аудитории', 'Библиотека', 'Музей', 'Актовый зал', 'Столовая', 'Буфеты'],
+    workingHours: 'Пн-Пт: 7:00 - 22:00, Сб: 9:00 - 18:00',
+    phone: '+7 (495) 958-20-48',
+  },
+  {
+    matches: ['стремянный 28', 'stremyanny 28'],
+    image:
+      'https://images.unsplash.com/photo-1730656447409-eacbfc60dd47?auto=format&fit=crop&w=1600&q=80',
+    facilities: ['Компьютерные классы', 'Конференц-залы', 'Коворкинг', 'Кафе'],
+    workingHours: 'Пн-Пт: 8:00 - 21:00',
+    phone: '+7 (495) 958-21-95',
+  },
+  {
+    matches: ['верхняя радищевская', 'verkhnyaya radischevskaya'],
+    image:
+      'https://images.unsplash.com/photo-1561124928-eda0f74e3847?auto=format&fit=crop&w=1600&q=80',
+    facilities: ['Общежитие', 'Столовая', 'Прачечная', 'Тренажерный зал', 'Библиотека'],
+    workingHours: 'Круглосуточно',
+    phone: '+7 (495) 958-23-67',
+  },
+  {
+    matches: ['зацепский вал 41', 'zatsepsky 41'],
+    image:
+      'https://images.unsplash.com/photo-1759200135568-566eb9ecaa81?auto=format&fit=crop&w=1600&q=80',
+    facilities: ['Бассейн', 'Спортзалы', 'Тренажерный зал', 'Теннисные корты', 'Раздевалки'],
+    workingHours: 'Пн-Пт: 7:00 - 22:00, Сб-Вс: 9:00 - 20:00',
+    phone: '+7 (495) 958-24-89',
+  },
+];
+
+const FALLBACK_PROFILES: Omit<BuildingProfile, 'matches'>[] = [
+  {
+    image:
+      'https://images.unsplash.com/photo-1679653226697-2b0fbf7c17f7?auto=format&fit=crop&w=1600&q=80',
+    facilities: ['Аудитории', 'Библиотека', 'Коворкинг'],
+    workingHours: 'Пн-Пт: 8:00 - 20:00',
+    phone: '+7 (800) 000-00-00',
+  },
+  {
+    image:
+      'https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&w=1600&q=80',
+    facilities: ['Лаборатории', 'Компьютерные классы', 'Столовая'],
+    workingHours: 'Пн-Пт: 8:00 - 19:00',
+    phone: '+7 (800) 111-11-11',
+  },
+  {
+    image:
+      'https://images.unsplash.com/photo-1496307653780-42ee777d4833?auto=format&fit=crop&w=1600&q=80',
+    facilities: ['Конференц-залы', 'Библиотека', 'Медиацентр'],
+    workingHours: 'Пн-Пт: 9:00 - 21:00',
+    phone: '+7 (800) 222-22-22',
+  },
+];
+
+const normalizeText = (value: string): string =>
+  value
+    .toLowerCase()
+    .replace(/ё/g, 'е')
+    .replace(/[^a-zа-я0-9]+/gi, ' ')
+    .trim();
+
+const getBuildingProfile = (building: Building): Omit<BuildingProfile, 'matches'> => {
+  const haystack = normalizeText(`${building.name} ${building.address ?? ''}`);
+  const matched = DESIGN_PROFILES.find((profile) =>
+    profile.matches.some((match) => haystack.includes(normalizeText(match)))
+  );
+
+  if (matched) {
+    return {
+      image: building.previewUrl || matched.image,
+      facilities: matched.facilities,
+      workingHours: matched.workingHours,
+      phone: matched.phone,
+    };
+  }
+
+  const checksum = building.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const fallback = FALLBACK_PROFILES[checksum % FALLBACK_PROFILES.length];
+  return {
+    image: building.previewUrl || fallback.image,
+    facilities: fallback.facilities,
+    workingHours: fallback.workingHours,
+    phone: fallback.phone,
+  };
+};
+
+const floorLabel = (floor: number): string => {
+  if (floor === -999) return 'Этаж не указан';
+  if (floor === 0) return 'Цокольный этаж';
+  if (floor === -1) return 'Подвал';
+  return `${floor} этаж`;
+};
 
 const BuildingPage: React.FC = () => {
   const { buildingId } = useParams<{ buildingId: string }>();
   const navigate = useNavigate();
-  const { theme, toggleTheme } = useTheme();
+
   const [building, setBuilding] = useState<Building | null>(null);
+  const [cityName, setCityName] = useState<string>('Корпус');
   const [locations, setLocations] = useState<Location[]>([]);
   const [activeTab, setActiveTab] = useState<'locations' | 'rooms'>('locations');
   const [searchQuery, setSearchQuery] = useState('');
@@ -28,33 +166,35 @@ const BuildingPage: React.FC = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        console.log('[BuildingPage] Fetching building:', buildingId);
         const buildingData = await getBuildingById(buildingId);
-        console.log('[BuildingPage] Building loaded:', buildingData.name);
         setBuilding(buildingData);
 
-        console.log('[BuildingPage] Fetching locations for building:', buildingId);
+        if (buildingData.cityId) {
+          try {
+            const city = await getCityById(buildingData.cityId);
+            setCityName(city.name);
+          } catch (cityErr) {
+            console.error('[BuildingPage] Failed to load city:', cityErr);
+          }
+        }
+
         const locationsData = await getLocationsByBuilding(buildingId);
-        console.log('[BuildingPage] Locations loaded:', locationsData.length);
-        
         const locationsWithPanoramas = await Promise.all(
-          locationsData.map(async (loc) => {
+          locationsData.map(async (location) => {
             try {
-              const panoramas = await getPanoramasByLocation(loc.id);
-              return { ...loc, panoramas };
-            } catch (err) {
-              console.error(`[BuildingPage] Error loading data for ${loc.name}:`, err);
-              return loc;
+              const panoramas = await getPanoramasByLocation(location.id);
+              return { ...location, panoramas };
+            } catch (panoramaErr) {
+              console.error(`[BuildingPage] Failed to load panoramas for ${location.name}:`, panoramaErr);
+              return location;
             }
           })
         );
-        
-        console.log('[BuildingPage] All locations with panoramas:', locationsWithPanoramas.length);
+
         setLocations(locationsWithPanoramas);
         setError(null);
       } catch (err: any) {
         console.error('[BuildingPage] Error fetching data:', err);
-        console.error('[BuildingPage] Error response:', err.response?.data);
         setError(err.response?.data?.message || 'Не удалось загрузить данные');
       } finally {
         setLoading(false);
@@ -65,7 +205,7 @@ const BuildingPage: React.FC = () => {
   }, [buildingId]);
 
   const handleLocationClick = useCallback((locationId: string) => {
-    setExpandedLocation(prev => prev === locationId ? null : locationId);
+    setExpandedLocation((prev) => (prev === locationId ? null : locationId));
     setCurrentPanoramaIndex(0);
   }, []);
 
@@ -75,43 +215,56 @@ const BuildingPage: React.FC = () => {
     console.error('[BuildingPage] Panorama error:', err);
   }, []);
 
-  const filteredLocations = locations.filter(loc => {
-    if (activeTab === 'locations') {
-      return loc.type === 'location';
-    } else {
-      return loc.type === 'room' && (
-        loc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (loc.roomNumber && loc.roomNumber.toLowerCase().includes(searchQuery.toLowerCase()))
-      );
-    }
-  });
+  const filteredLocations = useMemo(
+    () =>
+      locations.filter((location) => {
+        if (activeTab === 'locations') return location.type === 'location';
+        return (
+          location.type === 'room' &&
+          (location.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (location.roomNumber &&
+              location.roomNumber.toLowerCase().includes(searchQuery.toLowerCase())))
+        );
+      }),
+    [locations, activeTab, searchQuery]
+  );
 
-  const floorGroups = filteredLocations.reduce((acc, loc) => {
-    const floor = loc.floor !== null && loc.floor !== undefined ? loc.floor : -999;
-    if (!acc[floor]) acc[floor] = [];
-    acc[floor].push(loc);
-    return acc;
-  }, {} as Record<number, Location[]>);
+  const sortedFloorGroups = useMemo(() => {
+    const floorGroups = filteredLocations.reduce<Record<number, Location[]>>((acc, location) => {
+      const floor = location.floor !== null && location.floor !== undefined ? location.floor : -999;
+      if (!acc[floor]) acc[floor] = [];
+      acc[floor].push(location);
+      return acc;
+    }, {});
 
-  const sortedFloorGroups = Object.entries(floorGroups)
-    .sort(([a], [b]) => Number(a) - Number(b))
-    .map(([floor, floorLocations]) => ({ floor: Number(floor), locations: floorLocations }));
+    return Object.entries(floorGroups)
+      .sort(([a], [b]) => Number(a) - Number(b))
+      .map(([floor, floorLocations]) => ({ floor: Number(floor), locations: floorLocations }));
+  }, [filteredLocations]);
+
+  const buildingProfile = building ? getBuildingProfile(building) : null;
+
+  const handleOpenMap = useCallback(() => {
+    if (!building) return;
+    const query = encodeURIComponent(building.address || building.name);
+    window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank', 'noopener,noreferrer');
+  }, [building]);
 
   if (loading) {
     return (
-      <div className="building-page-loading">
-        <div className="spinner"></div>
-        <p className="building-page-loading-text">Загрузка...</p>
+      <div className="building-page-state">
+        <div className="spinner" />
+        <p className="building-page-state-text">Загрузка...</p>
       </div>
     );
   }
 
-  if (error || !building) {
+  if (error || !building || !buildingProfile) {
     return (
-      <div className="building-page-error">
-        <p className="building-page-error-title">Ошибка</p>
-        <p className="building-page-error-text">{error || 'Корпус не найден'}</p>
-        <button onClick={() => navigate('/')} className="btn btn-primary">
+      <div className="building-page-state">
+        <h2 className="building-page-state-title">Ошибка</h2>
+        <p className="building-page-state-text">{error || 'Корпус не найден'}</p>
+        <button onClick={() => navigate('/')} className="building-secondary-button">
           На главную
         </button>
       </div>
@@ -120,205 +273,278 @@ const BuildingPage: React.FC = () => {
 
   return (
     <div className="building-page">
-      <header className="building-page-header">
-        <div className="building-page-header-content">
-          <div className="building-page-header-top">
-            <button className="building-page-back" onClick={() => navigate(-1)}>
-              <span className="building-page-back-icon">←</span>
-              <span>Назад</span>
-            </button>
-            <button className="building-page-back" onClick={() => navigate('/')} style={{ marginLeft: '12px' }}>
-              <span>🏡 На главную</span>
-            </button>
-            <button className="theme-toggle" onClick={toggleTheme} aria-label="Переключить тему">
-              {theme === 'light' ? '🌙' : '☀️'}
-            </button>
-          </div>
-          <div className="building-page-info">
-            <h1 className="building-page-title animate-fade-in-up">{building.name}</h1>
-            {building.address && <p className="building-page-address animate-fade-in-up" style={{ animationDelay: '80ms' }}>{building.address}</p>}
-            {building.description && <p className="building-page-description animate-fade-in-up" style={{ animationDelay: '160ms' }}>{building.description}</p>}
-          </div>
-        </div>
-      </header>
+      <SiteHeader 
+        title={building.name} 
+        subtitle={cityName} 
+        backTo="/"
+        backLabel="Главное меню"
+      />
 
-      <div className="building-page-tabs-container">
-        <div className="building-page-tabs">
+      <main className="building-main">
+        <div className="building-shell">
           <button
-            className={`building-page-tab ${activeTab === 'locations' ? 'building-page-tab-active' : ''}`}
-            onClick={() => setActiveTab('locations')}
+            className="building-back-link"
+            onClick={() => navigate(-1)}
           >
-            Локации
+            <ArrowLeft size={18} />
+            Назад
           </button>
-          <button
-            className={`building-page-tab ${activeTab === 'rooms' ? 'building-page-tab-active' : ''}`}
-            onClick={() => setActiveTab('rooms')}
-          >
-            Кабинеты
-          </button>
-          <div className="building-page-tab-indicator" />
-        </div>
-      </div>
 
-      {activeTab === 'rooms' && (
-        <div className="building-page-search">
-          <input
-            type="text"
-            placeholder="Поиск кабинета..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="building-page-search-input input"
-          />
-        </div>
-      )}
+          <div className="building-layout">
+            <section className="building-primary-column">
+              <article className="building-hero-card">
+                <img src={buildingProfile.image} alt={building.name} className="building-hero-image" />
+                <div className="building-hero-overlay" />
+                <div className="building-hero-content">
+                  <h1>{building.name}</h1>
+                  <p>
+                    <MapPin size={20} />
+                    {building.address || 'Адрес уточняется'}
+                  </p>
+                </div>
+              </article>
 
-      <main className="building-page-main">
-        <div className="building-page-container">
-          {Object.keys(floorGroups).length === 0 ? (
-            <div className="building-page-empty animate-fade-in-up">
-              <p className="building-page-empty-text">
-                {activeTab === 'locations' ? 'Локации' : 'Кабинеты'} пока не добавлены
-              </p>
-            </div>
-          ) : (
-            sortedFloorGroups.map(({ floor, locations: floorLocations }, index) => (
-              <div key={floor} className="building-page-floor-group animate-fade-in-up" style={{ animationDelay: `${index * 80}ms` }}>
-                <h3 className="building-page-floor-title">
-                  {floor === -999 ? 'Этаж не указан' : floor === 0 ? 'Цокольный этаж' : floor === -1 ? 'Подвал' : `${floor} этаж`}
-                </h3>
-                <div className="building-page-accordion-list">
-                  {floorLocations.map((location) => (
-                    <div key={location.id} className="building-page-accordion-item">
-                      <button
-                        className={`building-page-accordion-header ${expandedLocation === location.id ? 'building-page-accordion-header-expanded' : ''}`}
-                        onClick={() => handleLocationClick(location.id)}
-                      >
-                        <div className="building-page-accordion-icon">
-                          {location.type === 'room' ? '🚪' : '📍'}
-                        </div>
-                        <div className="building-page-accordion-content">
-                          <h4 className="building-page-accordion-title">{location.name}</h4>
-                          {location.description && (
-                            <p className="building-page-accordion-description">{location.description}</p>
-                          )}
-                          {location.roomNumber && (
-                            <p className="building-page-accordion-room">Кабинет {location.roomNumber}</p>
-                          )}
-                        </div>
-                        <div className={`building-page-accordion-arrow ${expandedLocation === location.id ? 'building-page-accordion-arrow-expanded' : ''}`}>
-                          ▼
-                        </div>
-                      </button>
-                      
-                      {expandedLocation !== location.id && location.panoramas && location.panoramas.length > 0 && (
-                        <div className="building-page-location-preview" onClick={(e) => {
-                          e.stopPropagation();
-                          handleLocationClick(location.id);
-                        }}>
-                          <img 
-                            src={location.panoramas[0].url} 
-                            alt={location.name}
-                            className="building-page-preview-image"
-                          />
-                          {location.panoramas.length > 1 && (
-                            <div className="building-page-panorama-counter-badge">
-                              <span className="building-page-panorama-count">{location.panoramas.length} фото</span>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                      
-                      {expandedLocation === location.id && (
-                        <div className="building-page-accordion-panorama">
-                          {location.panoramas && location.panoramas.length > 0 ? (
-                            <>
-                              <div className={`panorama-viewer-wrapper ${isTransitioning ? 'panorama-transitioning' : ''}`}>
-                                <PanoramaViewer
-                                  key={location.panoramas[currentPanoramaIndex]?.url || location.panoramas[0].url}
-                                  imageUrl={location.panoramas[currentPanoramaIndex]?.url || location.panoramas[0].url}
-                                  onLoad={handlePanoramaLoad}
-                                  onError={handlePanoramaError}
-                                />
-                              </div>
-                              {location.panoramas.length > 1 && (
-                                <div className="building-page-panorama-nav">
-                                  <button 
-                                    className="building-page-nav-btn"
-                                    onClick={() => {
-                                      setIsTransitioning(true);
-                                      setTimeout(() => {
-                                        setCurrentPanoramaIndex(prev => 
-                                          prev > 0 ? prev - 1 : location.panoramas!.length - 1
-                                        );
-                                        setIsTransitioning(false);
-                                      }, 300);
-                                    }}
-                                  >
-                                    ‹
-                                  </button>
-                                  <span className="building-page-panorama-counter-text">
-                                    {currentPanoramaIndex + 1} из {location.panoramas.length}
-                                  </span>
-                                  <button 
-                                    className="building-page-nav-btn"
-                                    onClick={() => {
-                                      setIsTransitioning(true);
-                                      setTimeout(() => {
-                                        setCurrentPanoramaIndex(prev => 
-                                          prev < location.panoramas!.length - 1 ? prev + 1 : 0
-                                        );
-                                        setIsTransitioning(false);
-                                      }, 300);
-                                    }}
-                                  >
-                                    ›
-                                  </button>
-                                </div>
-                              )}
-                            </>
-                          ) : location.panoramaUrl ? (
-                            <PanoramaViewer
-                              key={location.panoramaUrl}
-                              imageUrl={location.panoramaUrl}
-                              onLoad={handlePanoramaLoad}
-                              onError={handlePanoramaError}
-                            />
-                          ) : (
-                            <div className="building-page-panorama-placeholder">
-                              <p>Панорама ещё не добавлена</p>
-                            </div>
-                          )}
-                        </div>
-                      )}
+              <article className="building-info-card">
+                <div className="building-info-title">
+                  <Building2 size={24} />
+                  <h2>О корпусе</h2>
+                </div>
+                <p>{building.description || 'Описание корпуса пока не добавлено.'}</p>
+              </article>
+
+              <article className="building-info-card">
+                <div className="building-info-title">
+                  <CheckCircle2 size={24} />
+                  <h2>Удобства</h2>
+                </div>
+                <div className="building-facilities-grid">
+                  {buildingProfile.facilities.map((facility) => (
+                    <div key={facility} className="building-facility-pill">
+                      <CheckCircle2 size={16} />
+                      <span>{facility}</span>
                     </div>
                   ))}
                 </div>
+              </article>
+
+              <article className="building-tour-card">
+                <h3>Виртуальный тур</h3>
+                <p>Совершите виртуальную экскурсию по корпусу и ознакомьтесь со всеми помещениями.</p>
+                <button
+                  className="building-tour-button"
+                  onClick={() => setShowStreetView(true)}
+                  disabled={locations.length === 0}
+                >
+                  Начать тур
+                </button>
+              </article>
+            </section>
+
+            <aside className="building-sidebar-column">
+              <div className="building-contact-card">
+                <h3>Контактная информация</h3>
+
+                <div className="building-contact-item">
+                  <div className="building-contact-icon building-contact-icon-blue">
+                    <MapPin size={18} />
+                  </div>
+                  <div>
+                    <p>Адрес</p>
+                    <span>{building.address || 'Адрес уточняется'}</span>
+                  </div>
+                </div>
+
+                <div className="building-contact-item">
+                  <div className="building-contact-icon building-contact-icon-green">
+                    <Clock3 size={18} />
+                  </div>
+                  <div>
+                    <p>Режим работы</p>
+                    <span>{buildingProfile.workingHours}</span>
+                  </div>
+                </div>
+
+                <div className="building-contact-item">
+                  <div className="building-contact-icon building-contact-icon-purple">
+                    <Phone size={18} />
+                  </div>
+                  <div>
+                    <p>Телефон</p>
+                    <a href={`tel:${buildingProfile.phone.replace(/\s/g, '')}`}>{buildingProfile.phone}</a>
+                  </div>
+                </div>
+
+                <button className="building-map-button" onClick={handleOpenMap}>
+                  <Navigation size={18} />
+                  Открыть на карте
+                </button>
               </div>
-            ))
-          )}
+            </aside>
+          </div>
+
+          <section className="building-panorama-section">
+            <div className="building-panorama-tabs">
+              <button
+                className={`building-panorama-tab ${activeTab === 'locations' ? 'is-active' : ''}`}
+                onClick={() => setActiveTab('locations')}
+              >
+                Локации
+              </button>
+              <button
+                className={`building-panorama-tab ${activeTab === 'rooms' ? 'is-active' : ''}`}
+                onClick={() => setActiveTab('rooms')}
+              >
+                Кабинеты
+              </button>
+            </div>
+
+            {activeTab === 'rooms' ? (
+              <div className="building-search-wrap">
+                <input
+                  type="text"
+                  placeholder="Поиск кабинета..."
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  className="building-search-input"
+                />
+              </div>
+            ) : null}
+
+            {sortedFloorGroups.length === 0 ? (
+              <div className="building-empty-state">
+                {activeTab === 'locations' ? 'Локации пока не добавлены' : 'Кабинеты пока не добавлены'}
+              </div>
+            ) : (
+              sortedFloorGroups.map(({ floor, locations: floorLocations }) => (
+                <div key={floor} className="building-floor-block">
+                  <h4>{floorLabel(floor)}</h4>
+                  <div className="building-accordion-list">
+                    {floorLocations.map((location) => (
+                      <div key={location.id} className="building-accordion-item">
+                        <button
+                          className={`building-accordion-head ${
+                            expandedLocation === location.id ? 'is-expanded' : ''
+                          }`}
+                          onClick={() => handleLocationClick(location.id)}
+                        >
+                          <div className="building-accordion-icon">{location.type === 'room' ? '🚪' : '📍'}</div>
+                          <div className="building-accordion-content">
+                            <h5>{location.name}</h5>
+                            {location.description ? <p>{location.description}</p> : null}
+                            {location.roomNumber ? <span>Кабинет {location.roomNumber}</span> : null}
+                          </div>
+                          <div className="building-accordion-arrow">
+                            {expandedLocation === location.id ? '▲' : '▼'}
+                          </div>
+                        </button>
+
+                        {expandedLocation !== location.id &&
+                        location.panoramas &&
+                        location.panoramas.length > 0 ? (
+                          <div
+                            className="building-location-preview"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              handleLocationClick(location.id);
+                            }}
+                          >
+                            <img
+                              src={location.panoramas[0].url}
+                              alt={location.name}
+                              className="building-location-preview-image"
+                            />
+                            {location.panoramas.length > 1 ? (
+                              <div className="building-panorama-counter-badge">
+                                {location.panoramas.length} фото
+                              </div>
+                            ) : null}
+                          </div>
+                        ) : null}
+
+                        {expandedLocation === location.id ? (
+                          <div className="building-panorama-wrap">
+                            {location.panoramas && location.panoramas.length > 0 ? (
+                              <>
+                                <div className={`panorama-viewer-wrapper ${isTransitioning ? 'panorama-transitioning' : ''}`}>
+                                  <PanoramaViewer
+                                    key={location.panoramas[currentPanoramaIndex]?.url || location.panoramas[0].url}
+                                    imageUrl={
+                                      location.panoramas[currentPanoramaIndex]?.url || location.panoramas[0].url
+                                    }
+                                    onLoad={handlePanoramaLoad}
+                                    onError={handlePanoramaError}
+                                  />
+                                </div>
+
+                                {location.panoramas.length > 1 ? (
+                                  <div className="building-panorama-nav">
+                                    <button
+                                      className="building-nav-btn"
+                                      onClick={() => {
+                                        setIsTransitioning(true);
+                                        setTimeout(() => {
+                                          setCurrentPanoramaIndex((prev) =>
+                                            prev > 0 ? prev - 1 : location.panoramas!.length - 1
+                                          );
+                                          setIsTransitioning(false);
+                                        }, 300);
+                                      }}
+                                    >
+                                      ‹
+                                    </button>
+                                    <span className="building-panorama-counter-text">
+                                      {currentPanoramaIndex + 1} из {location.panoramas.length}
+                                    </span>
+                                    <button
+                                      className="building-nav-btn"
+                                      onClick={() => {
+                                        setIsTransitioning(true);
+                                        setTimeout(() => {
+                                          setCurrentPanoramaIndex((prev) =>
+                                            prev < location.panoramas!.length - 1 ? prev + 1 : 0
+                                          );
+                                          setIsTransitioning(false);
+                                        }, 300);
+                                      }}
+                                    >
+                                      ›
+                                    </button>
+                                  </div>
+                                ) : null}
+                              </>
+                            ) : location.panoramaUrl ? (
+                              <PanoramaViewer
+                                key={location.panoramaUrl}
+                                imageUrl={location.panoramaUrl}
+                                onLoad={handlePanoramaLoad}
+                                onError={handlePanoramaError}
+                              />
+                            ) : (
+                              <div className="building-panorama-placeholder">
+                                Панорама еще не добавлена
+                              </div>
+                            )}
+                          </div>
+                        ) : null}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))
+            )}
+          </section>
         </div>
       </main>
 
-      <footer className="building-page-footer">
-        <p className="building-page-footer-text">© 2026 Plekhanov Russian University of Economics</p>
-      </footer>
+      <SiteFooter />
 
-      {/* Fixed Street View Button */}
-      <button
-        className="building-page-street-view-fixed"
-        onClick={() => setShowStreetView(true)}
-        disabled={locations.length === 0}
-      >
-        🧭 Свободное перемещение
-      </button>
-
-      {showStreetView && (
+      {showStreetView ? (
         <StreetViewMode
           locations={locations}
-          startLocationId={locations[0]?.id || ''}
+          startLocationId={expandedLocation || locations[0]?.id || ''}
           onClose={() => setShowStreetView(false)}
         />
-      )}
+      ) : null}
     </div>
   );
 };
