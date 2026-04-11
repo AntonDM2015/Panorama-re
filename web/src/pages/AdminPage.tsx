@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { getCities, getBuildings, getLocations, createCity, createBuilding, createLocation, deleteCity, deleteBuilding, deleteLocation, isAuthenticated, login, setTokens, logout, updateCity, updateBuilding, updateLocation, getPanoramasByLocation, createPanorama, deletePanorama, getPanoramaLinks, createPanoramaLink, deletePanoramaLink, getAllPanoramas } from '../services/api';
 import { City, Building, Location, PanoramaImage, PanoramaLink } from '../types';
 import { useTheme } from '../contexts/ThemeContext';
+import { Moon, Sun } from 'lucide-react';
+import { motion } from 'motion/react';
 import './AdminPage.css';
 
 const AdminPage: React.FC = () => {
@@ -491,8 +493,8 @@ const AdminPage: React.FC = () => {
             <h1 className="admin-title">Панель администратора</h1>
           </div>
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-            <button 
-              className="admin-logout-btn" 
+            <button
+              className="admin-logout-btn"
               onClick={() => {
                 logout();
                 setAuthState(false);
@@ -511,9 +513,22 @@ const AdminPage: React.FC = () => {
             >
               Выйти
             </button>
-            <button className="theme-toggle" onClick={toggleTheme} aria-label="Переключить тему">
-              {theme === 'light' ? '🌙' : '☀️'}
-            </button>
+            <motion.button
+              className="admin-theme-toggle"
+              onClick={toggleTheme}
+              aria-label="Переключить тему"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <motion.div
+                key={theme}
+                initial={{ rotate: -180, scale: 0.7 }}
+                animate={{ rotate: 0, scale: 1 }}
+                transition={{ duration: 0.2 }}
+              >
+                {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+              </motion.div>
+            </motion.button>
           </div>
         </div>
       </header>
